@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.nft_transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types";
+option go_package = "github.com/bianjieai/nft-transfer/types";
 
 // ClassTrace contains the base classID for ICS721 non-fungible tokens and the
 // source tracing information path.
