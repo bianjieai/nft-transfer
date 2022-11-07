@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -30,11 +29,6 @@ func TestIsAwayFromOrigin(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestNonFungibleTokenPacketDataGetBytes(t *testing.T) {
-	n := NewNonFungibleTokenPacketData("cat", "hahha", []string{"xiaopi"}, []string{"baidu.com"}, "", "")
-	fmt.Println(string(n.GetBytes()))
 }
 
 func TestClassTrace_GetFullClassPath(t *testing.T) {
