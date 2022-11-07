@@ -51,9 +51,6 @@ func mustProtoMarshalJSON(msg proto.Message) []byte {
 	// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
 	// OrigName and the anyResovler match the fields the original SDK function would expect
 	// in order to minimize changes.
-
-	// OrigName is true since there is no particular reason to use camel case
-	// The any resolver is empty, but provided anyways.
 	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: false, AnyResolver: anyResolver}
 
 	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
