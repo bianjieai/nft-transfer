@@ -1,6 +1,11 @@
 package types
 
 import (
+	"bytes"
+
+	"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,4 +43,25 @@ var (
 func init() {
 	RegisterLegacyAminoCodec(amino)
 	amino.Seal()
+}
+
+func mustProtoMarshalJSON(msg proto.Message) []byte {
+	anyResolver := codectypes.NewInterfaceRegistry()
+
+	// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
+	// OrigName and the anyResovler match the fields the original SDK function would expect
+	// in order to minimize changes.
+	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: false, AnyResolver: anyResolver}
+
+	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
+	if err != nil {
+		panic(err)
+	}
+
+	buf := new(bytes.Buffer)
+	if err := jm.Marshal(buf, msg); err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
 }
