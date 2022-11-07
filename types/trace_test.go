@@ -1,6 +1,7 @@
 package types
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -31,6 +32,29 @@ func TestIsAwayFromOrigin(t *testing.T) {
 	}
 }
 
+func TestParseClassTrace(t *testing.T) {
+	type args struct {
+		rawClassID string
+	}
+	tests := []struct {
+		name string
+		args args
+		want ClassTrace
+	}{
+		{"native class", args{"kitty"}, ClassTrace{Path: "", BaseClassId: "kitty"}},
+		{"transfer to (p2,c2)", args{"p2/c2/kitty"}, ClassTrace{Path: "p2/c2", BaseClassId: "kitty"}},
+		{"transfer to (p4,c4)", args{"p4/c4/p2/c2/kitty"}, ClassTrace{Path: "p4/c4/p2/c2", BaseClassId: "kitty"}},
+		{"transfer to (p6,c6)", args{"p6/c6/p4/c4/p2/c2/kitty"}, ClassTrace{Path: "p6/c6/p4/c4/p2/c2", BaseClassId: "kitty"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseClassTrace(tt.args.rawClassID); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseClassTrace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestClassTrace_GetFullClassPath(t *testing.T) {
 	tests := []struct {
 		name string
@@ -49,8 +73,4 @@ func TestClassTrace_GetFullClassPath(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestParseClassTrace(t *testing.T) {
-
 }
