@@ -8,6 +8,7 @@ const (
 	EventTypeChannelClose = "channel_closed"
 	EventTypeClassTrace   = "class_trace"
 
+	AttributeKeySender     = "sender"
 	AttributeKeyReceiver   = "receiver"
 	AttributeKeyClassID    = "classID"
 	AttributeKeyTokenIDs   = "tokenIDs"
