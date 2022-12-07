@@ -65,3 +65,23 @@ func mustProtoMarshalJSON(msg proto.Message) []byte {
 
 	return buf.Bytes()
 }
+
+func MarshalAny(any *codectypes.Any) ([]byte, error) {
+	if any == nil {
+		return nil, nil
+	}
+	bz, err := any.Marshal()
+	if err != nil {
+		return bz, err
+	}
+	return bz, nil
+}
+
+func UnmarshalAny(bz []byte) (*codectypes.Any, error) {
+	if bz == nil || len(bz) == 0 {
+		return nil, nil
+	}
+	any := &codectypes.Any{}
+	err := any.Unmarshal(bz)
+	return any, err
+}

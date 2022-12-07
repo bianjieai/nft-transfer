@@ -240,12 +240,9 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		}
 		tokenURIs = append(tokenURIs, nft.GetUri())
 
-		var tokenDataBz []byte
-		if nft.GetData() != nil {
-			tokenDataBz, err = nft.GetData().Marshal()
-			if err != nil {
-				return channeltypes.Packet{}, types.ErrMarshal
-			}
+		tokenDataBz, err := types.MarshalAny(nft.GetData())
+		if err != nil {
+			return channeltypes.Packet{}, err
 		}
 		tokenData = append(tokenData, tokenDataBz)
 
@@ -325,10 +322,16 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		)
 
 		for i, tokenID := range data.TokenIds {
+			tokenData, err := types.UnmarshalAny(data.TokenData[i])
+			if err != nil {
+				return err
+			}
+
 			if err := k.nftKeeper.Mint(ctx, nft.NFT{
 				ClassId: voucherClassID,
 				Id:      tokenID,
 				Uri:     data.TokenUris[i],
+				Data:    tokenData,
 			}, receiver); err != nil {
 				return err
 			}
