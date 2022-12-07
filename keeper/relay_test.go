@@ -47,6 +47,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					ClassId: classID,
 					Id:      nftID,
 					Uri:     nftURI,
+					Data:    any,
 				}, path.EndpointA.Chain.SenderAccount.GetAddress())
 				suite.Require().NoError(err, "Mint error")
 			},
@@ -66,8 +67,9 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				classID = trace.IBCClassID()
 				nftKeeper := path.EndpointB.Chain.GetSimApp().NFTKeeper
 				err = nftKeeper.SaveClass(path.EndpointB.Chain.GetContext(), nft.Class{
-					Id:  classID,
-					Uri: classURI,
+					Id:   classID,
+					Uri:  classURI,
+					Data: any,
 				})
 				suite.Require().NoError(err, "SaveClass error")
 
@@ -138,13 +140,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		trace             types.ClassTrace
 		classID, receiver string
 		nftIDs, nftURIs   []string
+		nftMetaDatas      [][]byte
 	)
 
 	baseClassID := "cryptoCat"
 	classURI := "cat_uri"
 	nftID := "kitty"
 	nftURI := "kittt_uri"
-	nftData := [][]byte{nil}
 
 	testCases := []struct {
 		msg              string
@@ -172,6 +174,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				ClassId: baseClassID,
 				Id:      nftID,
 				Uri:     nftURI,
+				Data:    any,
 			}, escrowAddress)
 
 		}, false, true},
@@ -202,6 +205,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver = suite.chainB.SenderAccount.GetAddress().String()
 			nftIDs = []string{nftID}
 			nftURIs = []string{nftURI}
+			nftMetaDatas = [][]byte{nftMetadata}
 
 			tc.malleate()
 
@@ -213,7 +217,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				receiver,
-				nftData,
+				nftMetaDatas,
 			)
 
 			packet := channeltypes.NewPacket(

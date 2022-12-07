@@ -6,8 +6,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
+	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/types"
 )
 
@@ -43,6 +45,26 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = types.Version
 
 	return path
+}
+
+func MockTokenMetadata() (*codectypes.Any, []byte) {
+	tokenData := &mock.TokenMetadata{
+		Name:                 "kitty",
+		Description:          "fertile digital cats",
+		Image:                "external-link-url/image.png",
+		ExternalLink:         "external-link-url/image.png",
+		SellerFeeBasisPoints: "100",
+	}
+	any, err := codectypes.NewAnyWithValue(tokenData)
+	if err != nil {
+		panic(err)
+	}
+
+	bz, err := types.MarshalAny(any)
+	if err != nil {
+		panic(err)
+	}
+	return any, bz
 }
 
 func TestKeeperTestSuite(t *testing.T) {

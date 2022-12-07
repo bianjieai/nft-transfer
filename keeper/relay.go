@@ -358,6 +358,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 			if !exist {
 				return sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
 			}
+
 			nft.Data = tokenData
 			if err := k.nftKeeper.Update(ctx, nft); err != nil {
 				return err

@@ -1,8 +1,11 @@
 package types
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
+	_, tokenData := MockTokenMetadata()
 	tests := []struct {
 		name    string
 		packet  NonFungibleTokenPacketData
@@ -10,32 +13,32 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:    "valid packet",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{"kitty_uri"}, [][]byte{nil}, sender, receiver},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{"kitty_uri"}, [][]byte{tokenData}, sender, receiver},
 			wantErr: false,
 		},
 		{
 			name:    "invalid packet with empty classID",
-			packet:  NonFungibleTokenPacketData{"", "uri", []string{"kitty"}, []string{"kitty_uri"}, [][]byte{nil}, sender, receiver},
+			packet:  NonFungibleTokenPacketData{"", "uri", []string{"kitty"}, []string{"kitty_uri"}, [][]byte{tokenData}, sender, receiver},
 			wantErr: true,
 		},
 		{
 			name:    "invalid packet with empty tokenIds",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{}, []string{"kitty_uri"}, [][]byte{nil}, sender, receiver},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{}, []string{"kitty_uri"}, [][]byte{tokenData}, sender, receiver},
 			wantErr: true,
 		},
 		{
 			name:    "invalid packet with empty tokenUris",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{nil}, sender, receiver},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{tokenData}, sender, receiver},
 			wantErr: true,
 		},
 		{
 			name:    "invalid packet with empty sender",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{nil}, "", receiver},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{tokenData}, "", receiver},
 			wantErr: true,
 		},
 		{
 			name:    "invalid packet with empty receiver",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{nil}, sender, receiver},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", []string{"kitty"}, []string{}, [][]byte{tokenData}, sender, receiver},
 			wantErr: true,
 		},
 	}
