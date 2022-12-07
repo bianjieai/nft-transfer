@@ -34,16 +34,15 @@ import (
 // For example, assume these steps of transfer occur:
 // A -> B -> C -> A -> C -> B -> A
 //
-//|                    sender  chain                      |                       receiver     chain              |
-//| :-----: | -------------------------: | :------------: | :------------: | -------------------------: | :-----: |
-//|  chain  |                    classID | (port,channel) | (port,channel) |                    classID |  chain  |
-//|    A    |                   nftClass |    (p1,c1)     |    (p2,c2)     |             p2/c2/nftClass |    B    |
-//|    B    |             p2/c2/nftClass |    (p3,c3)     |    (p4,c4)     |       p4/c4/p2/c2/nftClass |    C    |
-//|    C    |       p4/c4/p2/c2/nftClass |    (p5,c5)     |    (p6,c6)     | p6/c6/p4/c4/p2/c2/nftClass |    A    |
-//|    A    | p6/c6/p4/c4/p2/c2/nftClass |    (p6,c6)     |    (p5,c5)     |       p4/c4/p2/c2/nftClass |    C    |
-//|    C    |       p4/c4/p2/c2/nftClass |    (p4,c4)     |    (p3,c3)     |             p2/c2/nftClass |    B    |
-//|    B    |             p2/c2/nftClass |    (p2,c2)     |    (p1,c1)     |                   nftClass |    A    |
-//
+// |                    sender  chain                      |                       receiver     chain              |
+// | :-----: | -------------------------: | :------------: | :------------: | -------------------------: | :-----: |
+// |  chain  |                    classID | (port,channel) | (port,channel) |                    classID |  chain  |
+// |    A    |                   nftClass |    (p1,c1)     |    (p2,c2)     |             p2/c2/nftClass |    B    |
+// |    B    |             p2/c2/nftClass |    (p3,c3)     |    (p4,c4)     |       p4/c4/p2/c2/nftClass |    C    |
+// |    C    |       p4/c4/p2/c2/nftClass |    (p5,c5)     |    (p6,c6)     | p6/c6/p4/c4/p2/c2/nftClass |    A    |
+// |    A    | p6/c6/p4/c4/p2/c2/nftClass |    (p6,c6)     |    (p5,c5)     |       p4/c4/p2/c2/nftClass |    C    |
+// |    C    |       p4/c4/p2/c2/nftClass |    (p4,c4)     |    (p3,c3)     |             p2/c2/nftClass |    B    |
+// |    B    |             p2/c2/nftClass |    (p2,c2)     |    (p1,c1)     |                   nftClass |    A    |
 func (k Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -219,6 +218,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		fullClassPath = classID
 		err           error
 		tokenURIs     []string
+		tokenData     [][]byte
 	)
 
 	// deconstruct the token denomination into the denomination trace info
@@ -240,6 +240,15 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		}
 		tokenURIs = append(tokenURIs, nft.GetUri())
 
+		var tokenDataBz []byte
+		if nft.GetData() != nil {
+			tokenDataBz, err = nft.GetData().Marshal()
+			if err != nil {
+				return channeltypes.Packet{}, types.ErrMarshal
+			}
+		}
+		tokenData = append(tokenData, tokenDataBz)
+
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
 			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
@@ -260,7 +269,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	}
 
 	packetData := types.NewNonFungibleTokenPacketData(
-		fullClassPath, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
+		fullClassPath, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver, tokenData,
 	)
 
 	return channeltypes.NewPacket(

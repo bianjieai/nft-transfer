@@ -26,12 +26,14 @@ func NewNonFungibleTokenPacketData(
 	classID, classURI string,
 	tokenIDs, tokenURI []string,
 	sender, receiver string,
+	tokenData [][]byte,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		ClassId:   classID,
 		ClassUri:  classURI,
 		TokenIds:  tokenIDs,
 		TokenUris: tokenURI,
+		TokenData: tokenData,
 		Sender:    sender,
 		Receiver:  receiver,
 	}
@@ -51,6 +53,10 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 	if len(nftpd.TokenIds) != len(nftpd.TokenUris) {
 		return sdkerrors.Wrap(ErrInvalidPacket, "tokenIds and tokenUris lengths do not match")
+	}
+
+	if len(nftpd.TokenIds) != len(nftpd.TokenData) {
+		return sdkerrors.Wrap(ErrInvalidPacket, "tokenIds and tokenData lengths do not match")
 	}
 
 	if strings.TrimSpace(nftpd.Sender) == "" {

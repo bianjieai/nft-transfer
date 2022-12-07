@@ -144,6 +144,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	classURI := "cat_uri"
 	nftID := "kitty"
 	nftURI := "kittt_uri"
+	nftData := [][]byte{nil}
 
 	testCases := []struct {
 		msg              string
@@ -212,6 +213,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				receiver,
+				nftData,
 			)
 
 			packet := channeltypes.NewPacket(
@@ -350,6 +352,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
+				nil,
 			)
 
 			packet := channeltypes.NewPacket(

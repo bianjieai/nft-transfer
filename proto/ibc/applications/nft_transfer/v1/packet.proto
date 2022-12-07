@@ -20,4 +20,6 @@ message NonFungibleTokenPacketData {
   string sender = 5;
   // the recipient address on the destination chain
   string receiver = 6;
+  // the non fungible tokens's data to be transferred
+  repeated bytes token_data = 7;
 }
