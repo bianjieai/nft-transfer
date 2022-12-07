@@ -16,10 +16,11 @@ message NonFungibleTokenPacketData {
   repeated string token_ids = 3;
   // the non fungible tokens's uri to be transferred
   repeated string token_uris = 4;
-  // the sender address
-  string sender = 5;
-  // the recipient address on the destination chain
-  string receiver = 6;
   // the non fungible tokens's data to be transferred
-  repeated bytes token_data = 7;
+  repeated bytes token_data = 5;
+  // the sender address
+  string sender = 6;
+  // the recipient address on the destination chain
+  string receiver = 7;
+  
 }
