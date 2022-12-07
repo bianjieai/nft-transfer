@@ -14,6 +14,7 @@ import (
 type NFTKeeper interface {
 	SaveClass(ctx sdk.Context, class nft.Class) error
 	Mint(ctx sdk.Context, token nft.NFT, receiver sdk.AccAddress) error
+	Update(ctx sdk.Context, token nft.NFT) error
 	Transfer(ctx sdk.Context, classID string, nftID string, receiver sdk.AccAddress) error
 	Burn(ctx sdk.Context, classID string, nftID string) error
 

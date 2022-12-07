@@ -347,7 +347,23 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
-	for _, tokenID := range data.TokenIds {
+	for i, tokenID := range data.TokenIds {
+		if len(data.TokenData[i]) > 0 {
+			tokenData, err := types.UnmarshalAny(data.TokenData[i])
+			if err != nil {
+				return err
+			}
+
+			nft, exist := k.nftKeeper.GetNFT(ctx, voucherClassID, tokenID)
+			if !exist {
+				return sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+			}
+			nft.Data = tokenData
+			if err := k.nftKeeper.Update(ctx, nft); err != nil {
+				return err
+			}
+		}
+
 		if err := k.nftKeeper.Transfer(ctx,
 			voucherClassID, tokenID, receiver); err != nil {
 			return err
