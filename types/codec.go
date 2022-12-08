@@ -47,21 +47,26 @@ func init() {
 
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()
-
-	// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
-	// OrigName and the anyResovler match the fields the original SDK function would expect
-	// in order to minimize changes.
-	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: false, AnyResolver: anyResolver}
-
-	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
+	bz, err := ProtoMarshalJSON(msg, anyResolver)
 	if err != nil {
 		panic(err)
+	}
+	return bz
+}
+
+// ProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
+// bytes of a message.
+func ProtoMarshalJSON(msg proto.Message, resolver jsonpb.AnyResolver) ([]byte, error) {
+	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: true, AnyResolver: resolver}
+	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
+	if err != nil {
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
 	if err := jm.Marshal(buf, msg); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return buf.Bytes()
+	return buf.Bytes(), nil
 }

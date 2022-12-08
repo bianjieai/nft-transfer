@@ -20,6 +20,7 @@ import (
 type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.Codec
+	resolver codectypes.InterfaceRegistry
 
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -31,7 +32,7 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC nft-transfer Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey,
+	cdc codec.Codec, resolver codectypes.InterfaceRegistry, key storetypes.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
@@ -102,14 +103,7 @@ func (k Keeper) MarshalAny(any *codectypes.Any) ([]byte, error) {
 	if any == nil {
 		return nil, nil
 	}
-
-	var msg proto.Message
-	err := k.cdc.UnpackAny(any, &msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return k.cdc.MarshalInterfaceJSON(msg)
+	return types.ProtoMarshalJSON(any, k.resolver)
 }
 
 func (k Keeper) UnmarshalAny(bz []byte) (*codectypes.Any, error) {

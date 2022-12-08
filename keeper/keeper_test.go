@@ -52,7 +52,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
 	suite.Require().NoError(err, "MarshalAny error")
-
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
