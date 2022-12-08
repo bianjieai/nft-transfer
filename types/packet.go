@@ -55,8 +55,8 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPacket, "tokenIds and tokenUris lengths do not match")
 	}
 
-	if len(nftpd.TokenIds) != len(nftpd.TokenData) {
-		return sdkerrors.Wrap(ErrInvalidPacket, "tokenIds and tokenData lengths do not match")
+	if (len(nftpd.TokenData) != 0) && (len(nftpd.TokenIds) != len(nftpd.TokenData)) {
+		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenData must be 0 or the same as the length of TokenIds")
 	}
 
 	if strings.TrimSpace(nftpd.Sender) == "" {
@@ -72,4 +72,22 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serializing
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
+}
+
+// Optimize remove redundant null values in packets
+func (nftpd NonFungibleTokenPacketData) Optimize() NonFungibleTokenPacketData {
+	if len(nftpd.TokenData) == 0 {
+		return nftpd
+	}
+
+	var tokenData [][]byte
+	for _, data := range nftpd.TokenData {
+		if len(data) > 0 {
+			tokenData = append(tokenData, data)
+		}
+	}
+	if len(tokenData) == 0 {
+		nftpd.TokenData = tokenData
+	}
+	return nftpd
 }

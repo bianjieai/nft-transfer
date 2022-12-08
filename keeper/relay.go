@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/armon/go-metrics"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -267,7 +268,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 
 	packetData := types.NewNonFungibleTokenPacketData(
 		fullClassPath, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver, tokenData,
-	)
+	).Optimize()
 
 	return channeltypes.NewPacket(
 		packetData.GetBytes(),
@@ -291,6 +292,8 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	if err != nil {
 		return err
 	}
+
+	tokenDataNotEmpty := len(data.TokenData) > 0
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		// since SendPacket did not prefix the classID, we must prefix classID here
 		classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())
@@ -322,9 +325,12 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		)
 
 		for i, tokenID := range data.TokenIds {
-			tokenData, err := k.UnmarshalAny(data.TokenData[i])
-			if err != nil {
-				return err
+			var tokenData *codectypes.Any
+			if tokenDataNotEmpty && len(data.TokenData[i]) > 0 {
+				tokenData, err = k.UnmarshalAny(data.TokenData[i])
+				if err != nil {
+					return err
+				}
 			}
 
 			if err := k.nftKeeper.Mint(ctx, nft.NFT{
@@ -348,7 +354,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
 	for i, tokenID := range data.TokenIds {
-		if len(data.TokenData[i]) > 0 {
+		if tokenDataNotEmpty && len(data.TokenData[i]) > 0 {
 			tokenData, err := k.UnmarshalAny(data.TokenData[i])
 			if err != nil {
 				return err

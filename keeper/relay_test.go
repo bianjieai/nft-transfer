@@ -224,7 +224,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				receiver,
 				nftMetaDatas,
-			)
+			).Optimize()
 
 			packet := channeltypes.NewPacket(
 				data.GetBytes(),
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				nil,
-			)
+			).Optimize()
 
 			packet := channeltypes.NewPacket(
 				data.GetBytes(),

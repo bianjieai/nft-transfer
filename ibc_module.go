@@ -181,10 +181,12 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	var (
+		ack    = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		data   types.NonFungibleTokenPacketData
+		ackErr error
+	)
 
-	var data types.NonFungibleTokenPacketData
-	var ackErr error
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ackErr = sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-721 nft-transfer packet data")
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
