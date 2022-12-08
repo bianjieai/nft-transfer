@@ -240,7 +240,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		}
 		tokenURIs = append(tokenURIs, nft.GetUri())
 
-		tokenDataBz, err := types.MarshalAny(nft.GetData())
+		tokenDataBz, err := k.MarshalAny(nft.GetData())
 		if err != nil {
 			return channeltypes.Packet{}, err
 		}
@@ -322,7 +322,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		)
 
 		for i, tokenID := range data.TokenIds {
-			tokenData, err := types.UnmarshalAny(data.TokenData[i])
+			tokenData, err := k.UnmarshalAny(data.TokenData[i])
 			if err != nil {
 				return err
 			}
@@ -349,7 +349,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
 	for i, tokenID := range data.TokenIds {
 		if len(data.TokenData[i]) > 0 {
-			tokenData, err := types.UnmarshalAny(data.TokenData[i])
+			tokenData, err := k.UnmarshalAny(data.TokenData[i])
 			if err != nil {
 				return err
 			}

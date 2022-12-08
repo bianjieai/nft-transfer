@@ -14,10 +14,6 @@ import (
 	"github.com/bianjieai/nft-transfer/types"
 )
 
-var (
-	any, nftMetadata = MockTokenMetadata()
-)
-
 func TestKeeperTestSuite1(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
@@ -50,7 +46,7 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 		ClassId: classID,
 		Id:      nftID,
 		Uri:     nftURI,
-		Data:    any,
+		Data:    suite.any,
 	}, pathA2B.EndpointA.Chain.SenderAccount.GetAddress())
 	suite.Require().NoError(err, "MintToken error")
 	//============================== setup end===============================
@@ -287,7 +283,7 @@ func (suite *KeeperTestSuite) receiverNFT(
 		ClassId: classID,
 		Id:      data.GetTokenIds()[0],
 		Uri:     data.GetTokenUris()[0],
-		Data:    any,
+		Data:    suite.any,
 	}
 
 	suite.Require().Equal(

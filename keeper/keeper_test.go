@@ -24,6 +24,9 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 
 	queryClient types.QueryClient
+
+	any         *codectypes.Any
+	nftMetadata []byte
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -35,6 +38,21 @@ func (suite *KeeperTestSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().NFTTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
+
+	tokenData := &mock.TokenMetadata{
+		Name:                 "kitty",
+		Description:          "fertile digital cats",
+		Image:                "external-link-url/image.png",
+		ExternalLink:         "external-link-url/image.png",
+		SellerFeeBasisPoints: "100",
+	}
+	any, err := codectypes.NewAnyWithValue(tokenData)
+	suite.Require().NoError(err, "NewAnyWithValue error")
+	suite.any = any
+
+	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
+	suite.Require().NoError(err, "MarshalAny error")
+
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -45,26 +63,6 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = types.Version
 
 	return path
-}
-
-func MockTokenMetadata() (*codectypes.Any, []byte) {
-	tokenData := &mock.TokenMetadata{
-		Name:                 "kitty",
-		Description:          "fertile digital cats",
-		Image:                "external-link-url/image.png",
-		ExternalLink:         "external-link-url/image.png",
-		SellerFeeBasisPoints: "100",
-	}
-	any, err := codectypes.NewAnyWithValue(tokenData)
-	if err != nil {
-		panic(err)
-	}
-
-	bz, err := types.MarshalAny(any)
-	if err != nil {
-		panic(err)
-	}
-	return any, bz
 }
 
 func TestKeeperTestSuite(t *testing.T) {

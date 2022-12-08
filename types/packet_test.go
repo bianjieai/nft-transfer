@@ -5,7 +5,7 @@ import (
 )
 
 func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
-	_, tokenData := MockTokenMetadata()
+	tokenData := []byte{}
 	tests := []struct {
 		name    string
 		packet  NonFungibleTokenPacketData

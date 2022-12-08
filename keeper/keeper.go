@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -17,7 +19,7 @@ import (
 // Keeper defines the IBC non fungible transfer keeper
 type Keeper struct {
 	storeKey storetypes.StoreKey
-	cdc      codec.BinaryCodec
+	cdc      codec.Codec
 
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -29,7 +31,7 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC nft-transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	cdc codec.Codec, key storetypes.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
@@ -94,4 +96,30 @@ func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 		acc := k.authKeeper.NewAccountWithAddress(ctx, escrowAddress)
 		k.authKeeper.SetAccount(ctx, acc)
 	}
+}
+
+func (k Keeper) MarshalAny(any *codectypes.Any) ([]byte, error) {
+	if any == nil {
+		return nil, nil
+	}
+
+	var msg proto.Message
+	err := k.cdc.UnpackAny(any, &msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return k.cdc.MarshalInterfaceJSON(msg)
+}
+
+func (k Keeper) UnmarshalAny(bz []byte) (*codectypes.Any, error) {
+	if bz == nil || len(bz) == 0 {
+		return nil, nil
+	}
+	var msg proto.Message
+	err := k.cdc.UnmarshalInterfaceJSON(bz, &msg)
+	if err != nil {
+		return nil, err
+	}
+	return codectypes.NewAnyWithValue(msg)
 }
