@@ -279,11 +279,15 @@ func (suite *KeeperTestSuite) receiverNFT(
 		NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0])
 	suite.Require().True(found, "not found class")
 
+	tokenData, err := toEndpoint.Chain.GetSimApp().
+		NFTTransferKeeper.UnmarshalAny(data.GetTokenData()[0])
+	suite.Require().NoError(err, "UnmarshalAny failed")
+
 	expToken := &nft.NFT{
 		ClassId: classID,
 		Id:      data.GetTokenIds()[0],
 		Uri:     data.GetTokenUris()[0],
-		Data:    suite.any,
+		Data:    tokenData,
 	}
 
 	suite.Require().Equal(
