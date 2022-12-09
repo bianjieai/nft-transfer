@@ -179,7 +179,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		}
 		return nil
 	}
-	return k.mintTokenFromPacket(ctx, voucherClassID, data)
+	return k.mintTokens(ctx, voucherClassID, data.TokenIds, data.TokenUris, data.TokenData, sender)
 }
 
 // createOutgoingPacket will escrow the tokens to escrow account
@@ -225,6 +225,11 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		sourceChannel, fullClassPath)
 
 	for _, tokenID := range tokenIDs {
+		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
+		if !sender.Equals(owner) {
+			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+		}
+
 		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
 			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
@@ -236,11 +241,6 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 			return channeltypes.Packet{}, err
 		}
 		tokenData = append(tokenData, tokenDataBz)
-
-		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
-		if !sender.Equals(owner) {
-			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
-		}
 
 		if !isAwayFromOrigin {
 			if err := k.nftKeeper.Burn(ctx, classID, tokenID); err != nil {
@@ -283,7 +283,6 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		return err
 	}
 
-	tokenDataNotEmpty := len(data.TokenData) > 0
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		// since SendPacket did not prefix the classID, we must prefix classID here
 		classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())
@@ -313,7 +312,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 				sdk.NewAttribute(types.AttributeKeyClassID, voucherClassID),
 			),
 		)
-		return k.mintTokenFromPacket(ctx, voucherClassID, data)
+		return k.mintTokens(ctx, voucherClassID, data.TokenIds, data.TokenUris, data.TokenData, receiver)
 	}
 
 	// If the token moves in the direction of back to origin,
@@ -324,6 +323,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
+	tokenDataNotEmpty := len(data.TokenData) > 0
 	for i, tokenID := range data.TokenIds {
 		if tokenDataNotEmpty && len(data.TokenData[i]) > 0 {
 			tokenData, err := k.UnmarshalAny(data.TokenData[i])
@@ -350,16 +350,21 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	return nil
 }
 
-func (k Keeper) mintTokenFromPacket(ctx sdk.Context, voucherClassID string, packet types.NonFungibleTokenPacketData) error {
+func (k Keeper) mintTokens(ctx sdk.Context,
+	voucherClassID string,
+	tokenIds []string,
+	tokenUris []string,
+	tokenDatas [][]byte,
+	receiver sdk.AccAddress,
+) error {
 	var (
-		receiver          = sdk.MustAccAddressFromBech32(packet.Receiver)
-		tokenDataNotEmpty = len(packet.TokenData) > 0
+		tokenDataNotEmpty = len(tokenDatas) > 0
 		err               error
 	)
-	for i, tokenID := range packet.TokenIds {
-		var tokenData *codectypes.Any
-		if tokenDataNotEmpty && len(packet.TokenData[i]) > 0 {
-			tokenData, err = k.UnmarshalAny(packet.TokenData[i])
+	for i, tokenID := range tokenIds {
+		var tokenDataAny *codectypes.Any
+		if tokenDataNotEmpty && len(tokenDatas[i]) > 0 {
+			tokenDataAny, err = k.UnmarshalAny(tokenDatas[i])
 			if err != nil {
 				return err
 			}
@@ -368,8 +373,8 @@ func (k Keeper) mintTokenFromPacket(ctx sdk.Context, voucherClassID string, pack
 		if err := k.nftKeeper.Mint(ctx, nft.NFT{
 			ClassId: voucherClassID,
 			Id:      tokenID,
-			Uri:     packet.TokenUris[i],
-			Data:    tokenData,
+			Uri:     tokenUris[i],
+			Data:    tokenDataAny,
 		}, receiver); err != nil {
 			return err
 		}
