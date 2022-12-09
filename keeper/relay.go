@@ -179,17 +179,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		}
 		return nil
 	}
-
-	for i, tokenID := range data.TokenIds {
-		if err := k.nftKeeper.Mint(ctx, nft.NFT{
-			ClassId: voucherClassID,
-			Id:      tokenID,
-			Uri:     data.TokenUris[i],
-		}, sender); err != nil {
-			return err
-		}
-	}
-	return nil
+	return k.mintTokenFromPacket(ctx, voucherClassID, data)
 }
 
 // createOutgoingPacket will escrow the tokens to escrow account
@@ -323,26 +313,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 				sdk.NewAttribute(types.AttributeKeyClassID, voucherClassID),
 			),
 		)
-
-		for i, tokenID := range data.TokenIds {
-			var tokenData *codectypes.Any
-			if tokenDataNotEmpty && len(data.TokenData[i]) > 0 {
-				tokenData, err = k.UnmarshalAny(data.TokenData[i])
-				if err != nil {
-					return err
-				}
-			}
-
-			if err := k.nftKeeper.Mint(ctx, nft.NFT{
-				ClassId: voucherClassID,
-				Id:      tokenID,
-				Uri:     data.TokenUris[i],
-				Data:    tokenData,
-			}, receiver); err != nil {
-				return err
-			}
-		}
-		return nil
+		return k.mintTokenFromPacket(ctx, voucherClassID, data)
 	}
 
 	// If the token moves in the direction of back to origin,
@@ -373,6 +344,33 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 
 		if err := k.nftKeeper.Transfer(ctx,
 			voucherClassID, tokenID, receiver); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) mintTokenFromPacket(ctx sdk.Context, voucherClassID string, packet types.NonFungibleTokenPacketData) error {
+	var (
+		receiver          = sdk.MustAccAddressFromBech32(packet.Receiver)
+		tokenDataNotEmpty = len(packet.TokenData) > 0
+		err               error
+	)
+	for i, tokenID := range packet.TokenIds {
+		var tokenData *codectypes.Any
+		if tokenDataNotEmpty && len(packet.TokenData[i]) > 0 {
+			tokenData, err = k.UnmarshalAny(packet.TokenData[i])
+			if err != nil {
+				return err
+			}
+		}
+
+		if err := k.nftKeeper.Mint(ctx, nft.NFT{
+			ClassId: voucherClassID,
+			Id:      tokenID,
+			Uri:     packet.TokenUris[i],
+			Data:    tokenData,
+		}, receiver); err != nil {
 			return err
 		}
 	}
