@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -102,23 +101,14 @@ func (k Keeper) MarshalAny(any *codectypes.Any) ([]byte, error) {
 	if any == nil {
 		return nil, nil
 	}
-	var msg proto.Message
-	err := k.cdc.UnpackAny(any, &msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return k.cdc.MarshalInterfaceJSON(msg)
+	return k.cdc.MarshalJSON(any)
 }
 
 func (k Keeper) UnmarshalAny(bz []byte) (*codectypes.Any, error) {
 	if bz == nil || len(bz) == 0 {
 		return nil, nil
 	}
-	var msg proto.Message
-	err := k.cdc.UnmarshalInterfaceJSON(bz, &msg)
-	if err != nil {
-		return nil, err
-	}
-	return codectypes.NewAnyWithValue(msg)
+	var any codectypes.Any
+	err := k.cdc.UnmarshalJSON(bz, &any)
+	return &any, err
 }
