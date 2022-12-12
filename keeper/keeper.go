@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -97,18 +98,39 @@ func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 	}
 }
 
+// MarshalAny is responsible for serializing tokendata
 func (k Keeper) MarshalAny(any *codectypes.Any) ([]byte, error) {
 	if any == nil {
 		return nil, nil
 	}
+
+	if any.GetTypeUrl() == types.UnknownTokenDataTypeURL {
+		var message proto.Message
+		if err := k.cdc.UnpackAny(any, &message); err != nil {
+			return nil, err
+		}
+
+		tokenData, ok := message.(*types.UnknownTokenData)
+		if !ok {
+			return nil, types.ErrMarshal
+		}
+		return tokenData.Data, nil
+	}
 	return k.cdc.MarshalJSON(any)
 }
 
+// UnmarshalAny is responsible for deserializing tokendata.
+// Notice: If it is an unregistered type in this system, this method will save the original data in the `UnknownTokenData` type,
+// which is compatible with the definition of other chain Tokendata types.
 func (k Keeper) UnmarshalAny(bz []byte) (*codectypes.Any, error) {
 	if bz == nil || len(bz) == 0 {
 		return nil, nil
 	}
+
 	var any codectypes.Any
-	err := k.cdc.UnmarshalJSON(bz, &any)
-	return &any, err
+	if err := k.cdc.UnmarshalJSON(bz, &any); err == nil {
+		return &any, nil
+	}
+
+	return codectypes.NewAnyWithValue(&types.UnknownTokenData{Data: bz})
 }

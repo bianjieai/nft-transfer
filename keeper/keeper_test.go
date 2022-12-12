@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -52,6 +53,21 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
 	suite.Require().NoError(err, "MarshalAny error")
+}
+
+func (suite *KeeperTestSuite) TestMarshalAnyAndUnmarshalAny() {
+	var data = []byte(`{"image":null,"image_data":null,"external_url":null,"description":"acme","name":null,"attributes":null,"background_color":null,"animation_url":null,"youtube_url":null}`)
+
+	exp, err := codectypes.NewAnyWithValue(&types.UnknownTokenData{Data: data})
+	suite.Require().NoError(err, "NewAnyWithValue error")
+
+	any, err := suite.chainA.GetSimApp().NFTTransferKeeper.UnmarshalAny(data)
+	suite.Require().NoError(err, "UnmarshalAny error")
+	suite.Require().True(reflect.DeepEqual(exp, any), "not equal")
+
+	bz, err := suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
+	suite.Require().NoError(err, "MarshalAny error")
+	suite.Require().Equal(data, bz, "MarshalAny failed")
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

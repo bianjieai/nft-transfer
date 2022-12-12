@@ -22,5 +22,10 @@ message NonFungibleTokenPacketData {
   string sender = 6;
   // the recipient address on the destination chain
   string receiver = 7;
-  
+}
+
+// UnknownTokenData defines a struct for the tokenData payload
+message UnknownTokenData {
+  // Unknown token data encoding information
+  bytes data = 1;
 }

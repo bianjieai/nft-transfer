@@ -22,6 +22,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{})
+	registry.RegisterImplementations(
+		(*proto.Message)(nil),
+		&UnknownTokenData{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -38,6 +42,8 @@ var (
 
 	// AminoCdc is a amino codec created to support amino json compatible msgs.
 	AminoCdc = codec.NewAminoCodec(amino)
+
+	UnknownTokenDataTypeURL = "/ibc.applications.nft_transfer.v1.UnknownTokenData"
 )
 
 func init() {
