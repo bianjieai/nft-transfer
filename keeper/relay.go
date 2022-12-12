@@ -236,7 +236,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		}
 		tokenURIs = append(tokenURIs, nft.GetUri())
 
-		tokenDataBz, err := k.MarshalAny(nft.GetData())
+		tokenDataBz, err := k.resolver.Marshal(nft.GetData())
 		if err != nil {
 			return channeltypes.Packet{}, err
 		}
@@ -326,7 +326,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	tokenDataNotEmpty := len(data.TokenData) > 0
 	for i, tokenID := range data.TokenIds {
 		if tokenDataNotEmpty && len(data.TokenData[i]) > 0 {
-			tokenData, err := k.UnmarshalAny(data.TokenData[i])
+			tokenData, err := k.resolver.Unmarshal(data.TokenData[i])
 			if err != nil {
 				return err
 			}
@@ -366,7 +366,7 @@ func (k Keeper) mintTokens(ctx sdk.Context,
 	for i, tokenID := range tokenIds {
 		var tokenDataAny *codectypes.Any
 		if tokenDataNotEmpty && len(tokenDatas[i]) > 0 {
-			tokenDataAny, err = k.UnmarshalAny(tokenDatas[i])
+			tokenDataAny, err = k.resolver.Unmarshal(tokenDatas[i])
 			if err != nil {
 				return err
 			}

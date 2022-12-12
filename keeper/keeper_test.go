@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Require().NoError(err, "NewAnyWithValue error")
 	suite.any = any
 
-	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
+	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Marshal(any)
 	suite.Require().NoError(err, "MarshalAny error")
 }
 
@@ -61,11 +61,11 @@ func (suite *KeeperTestSuite) TestMarshalAnyAndUnmarshalAny() {
 	exp, err := codectypes.NewAnyWithValue(&types.UnknownTokenData{Data: data})
 	suite.Require().NoError(err, "NewAnyWithValue error")
 
-	any, err := suite.chainA.GetSimApp().NFTTransferKeeper.UnmarshalAny(data)
+	any, err := suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Unmarshal(data)
 	suite.Require().NoError(err, "UnmarshalAny error")
 	suite.Require().True(reflect.DeepEqual(exp, any), "not equal")
 
-	bz, err := suite.chainA.GetSimApp().NFTTransferKeeper.MarshalAny(any)
+	bz, err := suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Marshal(any)
 	suite.Require().NoError(err, "MarshalAny error")
 	suite.Require().Equal(data, bz, "MarshalAny failed")
 }

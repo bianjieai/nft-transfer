@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) receiverNFT(
 	suite.Require().True(found, "not found class")
 
 	tokenData, err := toEndpoint.Chain.GetSimApp().
-		NFTTransferKeeper.UnmarshalAny(data.GetTokenData()[0])
+		NFTTransferKeeper.TokenDataResolver().Unmarshal(data.GetTokenData()[0])
 	suite.Require().NoError(err, "UnmarshalAny failed")
 
 	expToken := &nft.NFT{

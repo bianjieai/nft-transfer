@@ -431,7 +431,7 @@ func NewSimApp(
 	app.NFTTransferKeeper = ibcnfttransferkeeper.NewKeeper(
 		appCodec, keys[ibcnfttransfertypes.StoreKey],
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.NFTKeeper, scopedNFTTransferKeeper,
+		app.AccountKeeper, app.NFTKeeper, scopedNFTTransferKeeper, nil,
 	)
 	nfttransferModule := nfttransfer.NewAppModule(app.NFTTransferKeeper)
 	nfttransferIBCModule := nfttransfer.NewIBCModule(app.NFTTransferKeeper)
