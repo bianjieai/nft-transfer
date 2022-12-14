@@ -20,19 +20,20 @@ func (k Keeper) Marshal(any *codectypes.Any) ([]byte, error) {
 		return nil, nil
 	}
 
-	if any.GetTypeUrl() == types.UnknownTokenDataTypeURL {
-		var message proto.Message
-		if err := k.cdc.UnpackAny(any, &message); err != nil {
-			return nil, err
-		}
-
-		tokenData, ok := message.(*types.UnknownTokenData)
-		if !ok {
-			return nil, types.ErrMarshal
-		}
-		return tokenData.Data, nil
+	if any.GetTypeUrl() != types.UnknownTokenDataTypeURL {
+		return k.cdc.MarshalJSON(any)
 	}
-	return k.cdc.MarshalJSON(any)
+
+	var message proto.Message
+	if err := k.cdc.UnpackAny(any, &message); err != nil {
+		return nil, err
+	}
+	tokenData, ok := message.(*types.UnknownTokenData)
+	if !ok {
+		return nil, types.ErrMarshal
+	}
+	return tokenData.Data, nil
+
 }
 
 // Unmarshal is responsible for deserializing tokendata.
