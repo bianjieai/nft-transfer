@@ -37,8 +37,9 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 	//============================== setup start===============================
 	nftKeeper := pathA2B.EndpointA.Chain.GetSimApp().NFTKeeper
 	err := nftKeeper.SaveClass(pathA2B.EndpointA.Chain.GetContext(), nft.Class{
-		Id:  classID,
-		Uri: classURI,
+		Id:   classID,
+		Uri:  classURI,
+		Data: suite.classMetadata,
 	})
 	suite.Require().NoError(err, "SaveClass error")
 
@@ -46,7 +47,7 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 		ClassId: classID,
 		Id:      nftID,
 		Uri:     nftURI,
-		Data:    suite.any,
+		Data:    suite.tokenMetadata,
 	}, pathA2B.EndpointA.Chain.SenderAccount.GetAddress())
 	suite.Require().NoError(err, "MintToken error")
 	//============================== setup end===============================
@@ -264,7 +265,14 @@ func (suite *KeeperTestSuite) receiverNFT(
 	class, found := toEndpoint.Chain.GetSimApp().
 		NFTKeeper.GetClass(toEndpoint.Chain.GetContext(), classID)
 	suite.Require().True(found, "not found class")
-	suite.Require().Equal(nft.Class{Id: classID, Uri: data.GetClassUri()}, class, "class not equal")
+
+	expClass := nft.Class{Id: classID, Uri: data.GetClassUri(), Data: suite.classMetadata}
+
+	suite.Require().Equal(
+		suite.chainA.Codec.MustMarshal(&expClass),
+		suite.chainA.Codec.MustMarshal(&class),
+		"class not equal",
+	)
 
 	// check nft owner
 	suite.Require().Equal(
@@ -275,25 +283,21 @@ func (suite *KeeperTestSuite) receiverNFT(
 	)
 
 	// check nft
-	_, found = toEndpoint.Chain.GetSimApp().
+	token, found := toEndpoint.Chain.GetSimApp().
 		NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0])
 	suite.Require().True(found, "not found class")
 
-	// tokenData, err := toEndpoint.Chain.GetSimApp().
-	// 	NFTTransferKeeper.TokenDataResolver().Unmarshal(data.GetTokenData()[0])
-	// suite.Require().NoError(err, "UnmarshalAny failed")
+	expToken := &nft.NFT{
+		ClassId: classID,
+		Id:      data.GetTokenIds()[0],
+		Uri:     data.GetTokenUris()[0],
+		Data:    suite.tokenMetadata,
+	}
 
-	// expToken := &nft.NFT{
-	// 	ClassId: classID,
-	// 	Id:      data.GetTokenIds()[0],
-	// 	Uri:     data.GetTokenUris()[0],
-	// 	Data:    tokenData,
-	// }
-
-	// suite.Require().Equal(
-	// 	suite.chainA.Codec.MustMarshal(expToken),
-	// 	suite.chainA.Codec.MustMarshal(&token),
-	// 	"nft not equal",
-	// )
+	suite.Require().Equal(
+		suite.chainA.Codec.MustMarshal(expToken),
+		suite.chainA.Codec.MustMarshal(&token),
+		"nft not equal",
+	)
 	return classID
 }

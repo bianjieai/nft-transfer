@@ -274,7 +274,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	}
 
 	packetData := types.NewNonFungibleTokenPacketData(
-		fullClassPath, class.GetURI(), tokenIDs, tokenURIs, sender.String(), receiver, tokenData, memo,
+		fullClassPath, class.GetURI(), class.GetData(), tokenIDs, tokenURIs, sender.String(), receiver, tokenData, memo,
 	)
 
 	return channeltypes.NewPacket(
@@ -320,7 +320,8 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		}
 
 		voucherClassID := classTrace.IBCClassID()
-		if err := k.nftKeeper.CreateOrUpdateClass(ctx, voucherClassID, data.ClassUri, ""); err != nil {
+		if err := k.nftKeeper.CreateOrUpdateClass(ctx,
+			voucherClassID, data.ClassUri, data.ClassData); err != nil {
 			return err
 		}
 

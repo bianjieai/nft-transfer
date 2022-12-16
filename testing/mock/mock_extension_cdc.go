@@ -62,9 +62,9 @@ func (w MockNFTKeeper) UnmarshalClassMetadata(data string) (*codectypes.Any, err
 		return nil, err
 	}
 
-	var any ClassMetadata
+	var any codectypes.Any
 	if err := w.cdc.UnmarshalJSON(bz, &any); err == nil {
-		return codectypes.NewAnyWithValue(&any)
+		return &any, nil
 	}
 	return codectypes.NewAnyWithValue(&Extension{Data: data})
 }
@@ -108,9 +108,9 @@ func (w MockNFTKeeper) UnmarshalTokenMetadata(data string) (*codectypes.Any, err
 		return nil, err
 	}
 
-	var any NFTMetadata
+	var any codectypes.Any
 	if err := w.cdc.UnmarshalJSON(bz, &any); err == nil {
-		return codectypes.NewAnyWithValue(&any)
+		return &any, nil
 	}
 
 	return codectypes.NewAnyWithValue(&Extension{Data: data})

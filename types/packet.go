@@ -23,7 +23,7 @@ var (
 
 // NewNonFungibleTokenPacketData constructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
-	classID, classURI string,
+	classID, classURI, classData string,
 	tokenIDs, tokenURI []string,
 	sender, receiver string,
 	tokenData []string,
@@ -32,6 +32,7 @@ func NewNonFungibleTokenPacketData(
 	return NonFungibleTokenPacketData{
 		ClassId:   classID,
 		ClassUri:  classURI,
+		ClassData: classData,
 		TokenIds:  tokenIDs,
 		TokenUris: tokenURI,
 		TokenData: tokenData,

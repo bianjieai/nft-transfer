@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -9,6 +10,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
+	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/types"
 )
 
@@ -24,8 +26,8 @@ type KeeperTestSuite struct {
 
 	queryClient types.QueryClient
 
-	any         *codectypes.Any
-	nftMetadata string
+	classMetadata *codectypes.Any
+	tokenMetadata *codectypes.Any
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -38,15 +40,40 @@ func (suite *KeeperTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().NFTTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	// tokenData := &mock.TokenMetadata{
-	// 	Name:                 "kitty",
-	// 	Description:          "fertile digital cats",
-	// 	Image:                "external-link-url/image.png",
-	// 	ExternalLink:         "external-link-url/image.png",
-	// 	SellerFeeBasisPoints: "100",
-	// }
-	// any, err := codectypes.NewAnyWithValue(tokenData)
-	// suite.Require().NoError(err, "NewAnyWithValue error")
+	classData := &mock.ClassMetadata{
+		Creator:          "test creator",
+		Schema:           "test schema",
+		MintRestricted:   true,
+		UpdateRestricted: true,
+		Data:             "test data",
+	}
+	classMetadata, err := codectypes.NewAnyWithValue(classData)
+	suite.Require().NoError(err, "NewAnyWithValue error")
+
+	suite.classMetadata = classMetadata
+
+	tokenData := &mock.TokenMetadata{
+		Name: "kitty",
+		Data: "test data",
+	}
+	tokenMetadata, err := codectypes.NewAnyWithValue(tokenData)
+	suite.Require().NoError(err, "NewAnyWithValue error")
+
+	suite.tokenMetadata = tokenMetadata
+}
+
+func (suite *KeeperTestSuite) MarshalClassMetadata() string {
+	codec := suite.chainA.App.AppCodec()
+	bz, err := codec.MarshalJSON(suite.classMetadata)
+	suite.Require().NoError(err, "MarshalClassMetadata error")
+	return base64.RawStdEncoding.EncodeToString(bz)
+}
+
+func (suite *KeeperTestSuite) MarshalTokenMetadata() string {
+	codec := suite.chainA.App.AppCodec()
+	bz, err := codec.MarshalJSON(suite.tokenMetadata)
+	suite.Require().NoError(err, "MarshalTokenMetadata error")
+	return base64.RawStdEncoding.EncodeToString(bz)
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

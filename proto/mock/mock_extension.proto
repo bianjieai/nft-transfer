@@ -17,8 +17,8 @@ message ClassMetadata {
   string data = 5;
 }
 
-// NFTMetadata defines a struct for the nft metadata
-message NFTMetadata {
+// TokenMetadata defines a struct for the nft metadata
+message TokenMetadata {
   option (gogoproto.equal) = true;
 
   string name = 1;

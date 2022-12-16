@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					ClassId: classID,
 					Id:      nftID,
 					Uri:     nftURI,
-					Data:    suite.any,
+					Data:    suite.tokenMetadata,
 				}, path.EndpointA.Chain.SenderAccount.GetAddress())
 				suite.Require().NoError(err, "Mint error")
 			},
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				err = nftKeeper.SaveClass(path.EndpointB.Chain.GetContext(), nft.Class{
 					Id:   classID,
 					Uri:  classURI,
-					Data: suite.any,
+					Data: suite.classMetadata,
 				})
 				suite.Require().NoError(err, "SaveClass error")
 
@@ -168,8 +168,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			) + baseClassID
 
 			suite.chainB.GetSimApp().NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
-				Id:  baseClassID,
-				Uri: classURI,
+				Id:   baseClassID,
+				Uri:  classURI,
+				Data: suite.classMetadata,
 			})
 
 			escrowAddress := types.GetEscrowAddress(
@@ -180,7 +181,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				ClassId: baseClassID,
 				Id:      nftID,
 				Uri:     nftURI,
-				Data:    suite.any,
+				Data:    suite.tokenMetadata,
 			}, escrowAddress)
 
 		}, false, true},
@@ -211,7 +212,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver = suite.chainB.SenderAccount.GetAddress().String()
 			nftIDs = []string{nftID}
 			nftURIs = []string{nftURI}
-			nftMetaDatas = []string{suite.nftMetadata}
+			nftMetaDatas = []string{suite.MarshalTokenMetadata()}
 
 			tc.malleate()
 
@@ -219,6 +220,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewNonFungibleTokenPacketData(
 				trace.GetFullClassPath(),
 				classURI,
+				suite.MarshalClassMetadata(),
 				nftIDs,
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
@@ -359,6 +361,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			data := types.NewNonFungibleTokenPacketData(
 				trace.GetFullClassPath(),
 				classURI,
+				suite.MarshalClassMetadata(),
 				nftIDs,
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),

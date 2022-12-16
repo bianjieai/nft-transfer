@@ -124,7 +124,8 @@ func (w MockNFTKeeper) GetNFT(ctx sdk.Context, classID, tokenID string) (nfttran
 }
 
 func (wc WrappedClass) GetData() string {
-	return ""
+	data, _ := wc.cdc.MarshalClassMetadata(wc.Data)
+	return data
 }
 
 func (wc WrappedClass) GetID() string {
@@ -136,7 +137,8 @@ func (wc WrappedClass) GetURI() string {
 }
 
 func (wc WrappedNFT) GetData() string {
-	return ""
+	data, _ := wc.cdc.MarshalTokenMetadata(wc.Data)
+	return data
 }
 
 func (wc WrappedNFT) GetID() string {
