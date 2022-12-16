@@ -46,7 +46,6 @@ func (w MockNFTKeeper) MarshalClassMetadata(any *codectypes.Any) (string, error)
 		return "", types.ErrMarshal
 	}
 	return tokenData.Data, nil
-
 }
 
 // UnmarshalClassMetadata is responsible for deserializing Metadata.

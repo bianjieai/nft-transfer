@@ -189,11 +189,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			classID = ""
 		}, true, false},
 		{"empty nftIDs", func() {
-			nftURIs = nil
+			nftIDs = nil
 		}, true, false},
 		{"empty nftURIs", func() {
 			nftURIs = nil
-		}, true, false},
+		}, true, true},
 		{"invalid receiver address", func() {
 			receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
 		}, true, false},

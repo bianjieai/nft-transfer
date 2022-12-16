@@ -27,8 +27,33 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "invalid packet with empty tokenUris",
+			name:    "valid packet with empty tokenUris",
 			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, tokenData, sender, receiver, "memo"},
+			wantErr: false,
+		},
+		{
+			name:    "valid packet with tokenUris",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{"1"}, tokenData, sender, receiver, "memo"},
+			wantErr: false,
+		},
+		{
+			name:    "invalid packet with unmatched tokenUris number",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{"1", "2"}, tokenData, sender, receiver, "memo"},
+			wantErr: true,
+		},
+		{
+			name:    "valid packet with empty tokenData",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, []string{}, sender, receiver, "memo"},
+			wantErr: false,
+		},
+		{
+			name:    "valid packet with tokenData",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, []string{"1"}, sender, receiver, "memo"},
+			wantErr: false,
+		},
+		{
+			name:    "invalid packet with unmatched tokenData number",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, []string{"1", "2"}, sender, receiver, "memo"},
 			wantErr: true,
 		},
 		{
@@ -38,7 +63,7 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:    "invalid packet with empty receiver",
-			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, tokenData, sender, receiver, "memo"},
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, tokenData, sender, "", "memo"},
 			wantErr: true,
 		},
 	}

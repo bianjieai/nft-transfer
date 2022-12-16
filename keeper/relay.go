@@ -180,23 +180,14 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		return nil
 	}
 
-	var (
-		hasTokenURIs = len(data.TokenUris) > 0
-		hasTokenData = len(data.TokenData) > 0
-
-		tokenURI  string
-		tokenData string
-	)
 	for i, tokenID := range data.TokenIds {
-		if hasTokenURIs {
-			tokenURI = data.TokenUris[i]
-		}
-
-		if hasTokenData {
-			tokenData = data.TokenData[i]
-		}
-
-		if err := k.nftKeeper.Mint(ctx, voucherClassID, tokenID, tokenURI, tokenData, sender); err != nil {
+		if err := k.nftKeeper.Mint(ctx,
+			voucherClassID,
+			tokenID,
+			types.GetIfExist(i, data.TokenUris),
+			types.GetIfExist(i, data.TokenData),
+			sender,
+		); err != nil {
 			return err
 		}
 	}
@@ -245,7 +236,6 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 
 	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
-
 	for _, tokenID := range tokenIDs {
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
@@ -259,23 +249,35 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		tokenURIs = append(tokenURIs, nft.GetURI())
 		tokenData = append(tokenData, nft.GetData())
 
-		if !isAwayFromOrigin {
+		if isAwayFromOrigin {
+			// create the escrow address for the tokens
+			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
+				return channeltypes.Packet{}, err
+			}
+		} else {
 			if err := k.nftKeeper.Burn(ctx, classID, tokenID); err != nil {
 				return channeltypes.Packet{}, err
 			}
-			continue
-		}
-
-		// create the escrow address for the tokens
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
-			return channeltypes.Packet{}, err
 		}
 	}
 
 	packetData := types.NewNonFungibleTokenPacketData(
-		fullClassPath, class.GetURI(), class.GetData(), tokenIDs, tokenURIs, sender.String(), receiver, tokenData, memo,
+		fullClassPath,
+		class.GetURI(),
+		class.GetData(),
+		tokenIDs,
+		tokenURIs,
+		sender.String(),
+		receiver,
+		tokenData,
+		memo,
 	)
+
+	// check packet
+	if err := packetData.ValidateBasic(); err != nil {
+		return channeltypes.Packet{}, err
+	}
 
 	return channeltypes.NewPacket(
 		packetData.GetBytes(),
@@ -300,13 +302,6 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		return err
 	}
 
-	var (
-		hasTokenURIs = len(data.TokenUris) > 0
-		hasTokenData = len(data.TokenData) > 0
-
-		tokenURI  string
-		tokenData string
-	)
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		// since SendPacket did not prefix the classID, we must prefix classID here
 		classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())
@@ -333,15 +328,13 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 			),
 		)
 		for i, tokenID := range data.TokenIds {
-			if hasTokenURIs {
-				tokenURI = data.TokenUris[i]
-			}
-
-			if hasTokenData {
-				tokenData = data.TokenData[i]
-			}
-
-			if err := k.nftKeeper.Mint(ctx, voucherClassID, tokenID, tokenURI, tokenData, receiver); err != nil {
+			if err := k.nftKeeper.Mint(ctx,
+				voucherClassID,
+				tokenID,
+				types.GetIfExist(i, data.TokenUris),
+				types.GetIfExist(i, data.TokenData),
+				receiver,
+			); err != nil {
 				return err
 			}
 		}
@@ -357,11 +350,8 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
 	for i, tokenID := range data.TokenIds {
-		if hasTokenData {
-			tokenData = data.TokenData[i]
-		}
 		if err := k.nftKeeper.Transfer(ctx,
-			voucherClassID, tokenID, tokenData, receiver); err != nil {
+			voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), receiver); err != nil {
 			return err
 		}
 	}
