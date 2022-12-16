@@ -9,7 +9,7 @@ import (
 	"github.com/bianjieai/nft-transfer/types"
 )
 
-const ExtensionTypeURL = "/ibc.applications.nft_transfer.v1.Extension"
+const ExtensionTypeURL = "/mock.Extension"
 
 type (
 	ClassMetadataResolver interface {
