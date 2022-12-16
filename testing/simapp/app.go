@@ -88,6 +88,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bianjieai/nft-transfer/testing/mock"
 	simappparams "github.com/bianjieai/nft-transfer/testing/simapp/params"
 	ica "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller"
@@ -431,7 +432,7 @@ func NewSimApp(
 	app.NFTTransferKeeper = ibcnfttransferkeeper.NewKeeper(
 		appCodec, keys[ibcnfttransfertypes.StoreKey],
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.NFTKeeper, scopedNFTTransferKeeper, nil,
+		app.AccountKeeper, mock.Wrap(appCodec, app.NFTKeeper), scopedNFTTransferKeeper,
 	)
 	nfttransferModule := nfttransfer.NewAppModule(app.NFTTransferKeeper)
 	nfttransferIBCModule := nfttransfer.NewIBCModule(app.NFTTransferKeeper)

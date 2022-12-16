@@ -26,7 +26,8 @@ func NewNonFungibleTokenPacketData(
 	classID, classURI string,
 	tokenIDs, tokenURI []string,
 	sender, receiver string,
-	tokenData [][]byte,
+	tokenData []string,
+	memo string,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		ClassId:   classID,
@@ -36,6 +37,7 @@ func NewNonFungibleTokenPacketData(
 		TokenData: tokenData,
 		Sender:    sender,
 		Receiver:  receiver,
+		Memo:      memo,
 	}
 }
 
@@ -72,22 +74,4 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serializing
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
-}
-
-// Optimize remove redundant null values in packets
-func (nftpd NonFungibleTokenPacketData) Optimize() NonFungibleTokenPacketData {
-	if len(nftpd.TokenData) == 0 {
-		return nftpd
-	}
-
-	var tokenData [][]byte
-	for _, data := range nftpd.TokenData {
-		if len(data) > 0 {
-			tokenData = append(tokenData, data)
-		}
-	}
-	if len(tokenData) == 0 {
-		nftpd.TokenData = tokenData
-	}
-	return nftpd
 }

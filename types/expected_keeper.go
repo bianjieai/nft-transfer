@@ -2,26 +2,39 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
+// Class defines the interface specifications of collection that can be transferred across chains
+type Class interface {
+	GetID() string
+	GetURI() string
+	GetData() string
+}
+
+// NFT defines the interface specification of nft that can be transferred across chains
+type NFT interface {
+	GetClassID() string
+	GetID() string
+	GetURI() string
+	GetData() string
+}
+
 // NFTKeeper defines the expected nft keeper
 type NFTKeeper interface {
-	SaveClass(ctx sdk.Context, class nft.Class) error
-	Mint(ctx sdk.Context, token nft.NFT, receiver sdk.AccAddress) error
-	Update(ctx sdk.Context, token nft.NFT) error
-	Transfer(ctx sdk.Context, classID string, nftID string, receiver sdk.AccAddress) error
-	Burn(ctx sdk.Context, classID string, nftID string) error
+	CreateOrUpdateClass(ctx sdk.Context, classID, classURI string, classData string) error
+	Mint(ctx sdk.Context, classID, tokenID, tokenURI string, tokenData string, receiver sdk.AccAddress) error
+	Transfer(ctx sdk.Context, classID string, tokenID string, tokenData string, receiver sdk.AccAddress) error
+	Burn(ctx sdk.Context, classID string, tokenID string) error
 
-	GetOwner(ctx sdk.Context, classID string, nftID string) sdk.AccAddress
+	GetOwner(ctx sdk.Context, classID string, tokenID string) sdk.AccAddress
 	HasClass(ctx sdk.Context, classID string) bool
-	GetClass(ctx sdk.Context, classID string) (nft.Class, bool)
-	GetNFT(ctx sdk.Context, classID, nftID string) (nft.NFT, bool)
+	GetClass(ctx sdk.Context, classID string) (Class, bool)
+	GetNFT(ctx sdk.Context, classID, tokenID string) (NFT, bool)
 }
 
 // ICS4Wrapper defines the expected ICS4Wrapper for middleware

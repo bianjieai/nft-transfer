@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -10,7 +9,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
-	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/types"
 )
 
@@ -27,7 +25,7 @@ type KeeperTestSuite struct {
 	queryClient types.QueryClient
 
 	any         *codectypes.Any
-	nftMetadata []byte
+	nftMetadata string
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -40,34 +38,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().NFTTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	tokenData := &mock.TokenMetadata{
-		Name:                 "kitty",
-		Description:          "fertile digital cats",
-		Image:                "external-link-url/image.png",
-		ExternalLink:         "external-link-url/image.png",
-		SellerFeeBasisPoints: "100",
-	}
-	any, err := codectypes.NewAnyWithValue(tokenData)
-	suite.Require().NoError(err, "NewAnyWithValue error")
-	suite.any = any
-
-	suite.nftMetadata, err = suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Marshal(any)
-	suite.Require().NoError(err, "MarshalAny error")
-}
-
-func (suite *KeeperTestSuite) TestMarshalAnyAndUnmarshalAny() {
-	var data = []byte(`{"image":null,"image_data":null,"external_url":null,"description":"acme","name":null,"attributes":null,"background_color":null,"animation_url":null,"youtube_url":null}`)
-
-	exp, err := codectypes.NewAnyWithValue(&types.UnknownTokenData{Data: data})
-	suite.Require().NoError(err, "NewAnyWithValue error")
-
-	any, err := suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Unmarshal(data)
-	suite.Require().NoError(err, "UnmarshalAny error")
-	suite.Require().True(reflect.DeepEqual(exp, any), "not equal")
-
-	bz, err := suite.chainA.GetSimApp().NFTTransferKeeper.TokenDataResolver().Marshal(any)
-	suite.Require().NoError(err, "MarshalAny error")
-	suite.Require().Equal(data, bz, "MarshalAny failed")
+	// tokenData := &mock.TokenMetadata{
+	// 	Name:                 "kitty",
+	// 	Description:          "fertile digital cats",
+	// 	Image:                "external-link-url/image.png",
+	// 	ExternalLink:         "external-link-url/image.png",
+	// 	SellerFeeBasisPoints: "100",
+	// }
+	// any, err := codectypes.NewAnyWithValue(tokenData)
+	// suite.Require().NoError(err, "NewAnyWithValue error")
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

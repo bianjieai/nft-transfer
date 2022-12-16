@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					classID,
 					[]string{nftID},
 					path.EndpointB.Chain.SenderAccount.GetAddress(),
-					path.EndpointA.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+					path.EndpointA.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
 				)
 				suite.Require().NoError(err)
 
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				classID,
 				[]string{nftID},
 				path.EndpointA.Chain.SenderAccount.GetAddress(),
-				path.EndpointB.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+				path.EndpointB.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
 			)
 
 			suite.Require().NoError(err)
@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		trace             types.ClassTrace
 		classID, receiver string
 		nftIDs, nftURIs   []string
-		nftMetaDatas      [][]byte
+		nftMetaDatas      []string
 	)
 
 	baseClassID := "cryptoCat"
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver = suite.chainB.SenderAccount.GetAddress().String()
 			nftIDs = []string{nftID}
 			nftURIs = []string{nftURI}
-			nftMetaDatas = [][]byte{suite.nftMetadata}
+			nftMetaDatas = []string{suite.nftMetadata}
 
 			tc.malleate()
 
@@ -224,7 +224,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				receiver,
 				nftMetaDatas,
-			).Optimize()
+				"memo",
+			)
 
 			packet := channeltypes.NewPacket(
 				data.GetBytes(),
@@ -363,7 +364,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				nil,
-			).Optimize()
+				"memo",
+			)
 
 			packet := channeltypes.NewPacket(
 				data.GetBytes(),

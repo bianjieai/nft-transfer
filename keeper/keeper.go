@@ -25,7 +25,6 @@ type Keeper struct {
 	nftKeeper     types.NFTKeeper
 	authKeeper    types.AccountKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
-	resolver      TokenDataResolver
 }
 
 // NewKeeper creates a new IBC nft-transfer Keeper instance
@@ -33,9 +32,8 @@ func NewKeeper(
 	cdc codec.Codec, key storetypes.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
-	resolver TokenDataResolver,
 ) Keeper {
-	k := Keeper{
+	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		ics4Wrapper:   ics4Wrapper,
@@ -44,12 +42,7 @@ func NewKeeper(
 		authKeeper:    authKeeper,
 		nftKeeper:     nftKeeper,
 		scopedKeeper:  scopedKeeper,
-		resolver:      resolver,
 	}
-	if k.resolver == nil {
-		k.resolver = k
-	}
-	return k
 }
 
 // Logger returns a module-specific logger.

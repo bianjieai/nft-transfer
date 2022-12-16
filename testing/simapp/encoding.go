@@ -2,9 +2,7 @@ package simapp
 
 import (
 	"github.com/cosmos/cosmos-sdk/std"
-	"github.com/gogo/protobuf/proto"
 
-	"github.com/bianjieai/nft-transfer/testing/mock"
 	simappparams "github.com/bianjieai/nft-transfer/testing/simapp/params"
 )
 
@@ -18,6 +16,6 @@ func MakeTestEncodingConfig() simappparams.EncodingConfig {
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	encodingConfig.InterfaceRegistry.RegisterImplementations((*proto.Message)(nil), &mock.TokenMetadata{})
+	//encodingConfig.InterfaceRegistry.RegisterImplementations((*proto.Message)(nil), &mock.TokenMetadata{})
 	return encodingConfig
 }

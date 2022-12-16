@@ -16,11 +16,12 @@ const (
 )
 
 // NewMsgTransfer creates a new MsgTransfer instance
+//
 //nolint:interfacer
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	classID string, tokenIds []string, sender, receiver string,
-	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -31,6 +32,7 @@ func NewMsgTransfer(
 		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
+		Memo:             memo,
 	}
 }
 
