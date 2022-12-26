@@ -38,6 +38,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+### API Breaking
+
+### State Machine Breaking
+
+* (proto) [\#6](https://github.com/bianjieai/nft-transfer/pull/6) add `class_data` & `token_data` field for `NonFungibleTokenPacketData`, add `memo` field for `MsgTransfer`
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+## [v1.0.0-beta]
+
+### Dependencies
+
 * [\#1](https://github.com/bianjieai/nft-transfer/pull/1) Bump ibc-go to v5.0.1.
 
 ### API Breaking
