@@ -23,17 +23,22 @@ var (
 
 // NewNonFungibleTokenPacketData constructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
-	classID, classURI string,
+	classID, classURI, classData string,
 	tokenIDs, tokenURI []string,
 	sender, receiver string,
+	tokenData []string,
+	memo string,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		ClassId:   classID,
 		ClassUri:  classURI,
+		ClassData: classData,
 		TokenIds:  tokenIDs,
 		TokenUris: tokenURI,
+		TokenData: tokenData,
 		Sender:    sender,
 		Receiver:  receiver,
+		Memo:      memo,
 	}
 }
 
@@ -46,11 +51,21 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	}
 
 	if len(nftpd.TokenIds) == 0 {
-		return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+		return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be empty")
 	}
 
-	if len(nftpd.TokenIds) != len(nftpd.TokenUris) {
-		return sdkerrors.Wrap(ErrInvalidPacket, "tokenIds and tokenUris lengths do not match")
+	for _, id := range nftpd.TokenIds {
+		if strings.TrimSpace(id) == "" {
+			return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+		}
+	}
+
+	if (len(nftpd.TokenUris) != 0) && len(nftpd.TokenIds) != len(nftpd.TokenUris) {
+		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenUri must be 0 or the same as the length of TokenIds")
+	}
+
+	if (len(nftpd.TokenData) != 0) && (len(nftpd.TokenIds) != len(nftpd.TokenData)) {
+		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenData must be 0 or the same as the length of TokenIds")
 	}
 
 	if strings.TrimSpace(nftpd.Sender) == "" {
@@ -65,5 +80,12 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serializing
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(mustProtoMarshalJSON(&nftpd))
+	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
+}
+
+func GetIfExist(i int, data []string) string {
+	if i < 0 || i >= len(data) {
+		return ""
+	}
+	return data[i]
 }

@@ -19,13 +19,13 @@ func TestMsgTransfer_ValidateBasic(t *testing.T) {
 		msg     *MsgTransfer
 		wantErr bool
 	}{
-		{"valid msg", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1), false},
-		{"invalid msg with port", NewMsgTransfer("@nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1), true},
-		{"invalid msg with channel", NewMsgTransfer("nft-transfer", "@channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1), true},
-		{"invalid msg with class", NewMsgTransfer("nft-transfer", "channel-1", "", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1), true},
-		{"invalid msg with token_id", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{""}, sender, receiver, clienttypes.NewHeight(1, 1), 1), true},
-		{"invalid msg with sender", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, "", receiver, clienttypes.NewHeight(1, 1), 1), true},
-		{"invalid msg with receiver", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, "", clienttypes.NewHeight(1, 1), 1), true},
+		{"valid msg", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1, "memo"), false},
+		{"invalid msg with port", NewMsgTransfer("@nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1, "memo"), true},
+		{"invalid msg with channel", NewMsgTransfer("nft-transfer", "@channel-1", "cryptoCat", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1, "memo"), true},
+		{"invalid msg with class", NewMsgTransfer("nft-transfer", "channel-1", "", []string{"kitty"}, sender, receiver, clienttypes.NewHeight(1, 1), 1, "memo"), true},
+		{"invalid msg with token_id", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{""}, sender, receiver, clienttypes.NewHeight(1, 1), 1, "memo"), true},
+		{"invalid msg with sender", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, "", receiver, clienttypes.NewHeight(1, 1), 1, "memo"), true},
+		{"invalid msg with receiver", NewMsgTransfer("nft-transfer", "channel-1", "cryptoCat", []string{"kitty"}, sender, "", clienttypes.NewHeight(1, 1), 1, "memo"), true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

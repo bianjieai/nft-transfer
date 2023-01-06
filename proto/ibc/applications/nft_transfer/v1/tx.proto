@@ -43,6 +43,8 @@ message MsgTransfer {
   // The timeout is disabled when set to 0.
   uint64 timeout_timestamp = 8
       [ (gogoproto.moretags) = "yaml:\"timeout_timestamp\"" ];
+  // optional memo
+  string memo = 9;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

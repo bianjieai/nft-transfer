@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package mock;
+
+option go_package = "github.com/bianjieai/nft-transfer/testing/mock";
+
+import "gogoproto/gogo.proto";
+
+// ClassMetadata defines a struct for the class metadata
+message ClassMetadata {
+  option (gogoproto.equal) = true;
+
+  string creator = 1;
+  string schema = 2;
+  bool mint_restricted = 3;
+  bool update_restricted = 4;
+  string data = 5;
+}
+
+// TokenMetadata defines a struct for the nft metadata
+message TokenMetadata {
+  option (gogoproto.equal) = true;
+
+  string name = 1;
+  string data = 2;
+}
+
+// Extension defines a data structure for storing data types that the system
+// cannot recognize
+message Extension {
+  option (gogoproto.equal) = true;
+
+  string data = 1;
+}

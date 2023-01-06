@@ -17,7 +17,7 @@ import (
 // Keeper defines the IBC non fungible transfer keeper
 type Keeper struct {
 	storeKey storetypes.StoreKey
-	cdc      codec.BinaryCodec
+	cdc      codec.Codec
 
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -29,7 +29,7 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC nft-transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	cdc codec.Codec, key storetypes.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {

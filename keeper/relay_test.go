@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -12,6 +14,10 @@ import (
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/types"
 )
+
+func TestKeeperTestSuite2(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
+}
 
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
@@ -47,6 +53,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					ClassId: classID,
 					Id:      nftID,
 					Uri:     nftURI,
+					Data:    suite.tokenMetadata,
 				}, path.EndpointA.Chain.SenderAccount.GetAddress())
 				suite.Require().NoError(err, "Mint error")
 			},
@@ -66,8 +73,9 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				classID = trace.IBCClassID()
 				nftKeeper := path.EndpointB.Chain.GetSimApp().NFTKeeper
 				err = nftKeeper.SaveClass(path.EndpointB.Chain.GetContext(), nft.Class{
-					Id:  classID,
-					Uri: classURI,
+					Id:   classID,
+					Uri:  classURI,
+					Data: suite.classMetadata,
 				})
 				suite.Require().NoError(err, "SaveClass error")
 
@@ -100,7 +108,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					classID,
 					[]string{nftID},
 					path.EndpointB.Chain.SenderAccount.GetAddress(),
-					path.EndpointA.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+					path.EndpointA.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
 				)
 				suite.Require().NoError(err)
 
@@ -119,7 +127,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				classID,
 				[]string{nftID},
 				path.EndpointA.Chain.SenderAccount.GetAddress(),
-				path.EndpointB.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+				path.EndpointB.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
 			)
 
 			suite.Require().NoError(err)
@@ -138,6 +146,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		trace             types.ClassTrace
 		classID, receiver string
 		nftIDs, nftURIs   []string
+		nftMetaDatas      []string
 	)
 
 	baseClassID := "cryptoCat"
@@ -159,8 +168,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			) + baseClassID
 
 			suite.chainB.GetSimApp().NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
-				Id:  baseClassID,
-				Uri: classURI,
+				Id:   baseClassID,
+				Uri:  classURI,
+				Data: suite.classMetadata,
 			})
 
 			escrowAddress := types.GetEscrowAddress(
@@ -171,6 +181,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				ClassId: baseClassID,
 				Id:      nftID,
 				Uri:     nftURI,
+				Data:    suite.tokenMetadata,
 			}, escrowAddress)
 
 		}, false, true},
@@ -178,11 +189,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			classID = ""
 		}, true, false},
 		{"empty nftIDs", func() {
-			nftURIs = nil
+			nftIDs = nil
 		}, true, false},
 		{"empty nftURIs", func() {
 			nftURIs = nil
-		}, true, false},
+		}, true, true},
 		{"invalid receiver address", func() {
 			receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
 		}, true, false},
@@ -201,6 +212,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver = suite.chainB.SenderAccount.GetAddress().String()
 			nftIDs = []string{nftID}
 			nftURIs = []string{nftURI}
+			nftMetaDatas = []string{suite.MarshalTokenMetadata()}
 
 			tc.malleate()
 
@@ -208,10 +220,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewNonFungibleTokenPacketData(
 				trace.GetFullClassPath(),
 				classURI,
+				suite.MarshalClassMetadata(),
 				nftIDs,
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				receiver,
+				nftMetaDatas,
+				"memo",
 			)
 
 			packet := channeltypes.NewPacket(
@@ -346,10 +361,13 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			data := types.NewNonFungibleTokenPacketData(
 				trace.GetFullClassPath(),
 				classURI,
+				suite.MarshalClassMetadata(),
 				nftIDs,
 				nftURIs,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
+				nil,
+				"memo",
 			)
 
 			packet := channeltypes.NewPacket(

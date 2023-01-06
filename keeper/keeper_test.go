@@ -1,13 +1,16 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
+	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/types"
 )
 
@@ -22,6 +25,9 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 
 	queryClient types.QueryClient
+
+	classMetadata *codectypes.Any
+	tokenMetadata *codectypes.Any
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -33,6 +39,41 @@ func (suite *KeeperTestSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().NFTTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
+
+	classData := &mock.ClassMetadata{
+		Creator:          "test creator",
+		Schema:           "test schema",
+		MintRestricted:   true,
+		UpdateRestricted: true,
+		Data:             "test data",
+	}
+	classMetadata, err := codectypes.NewAnyWithValue(classData)
+	suite.Require().NoError(err, "NewAnyWithValue error")
+
+	suite.classMetadata = classMetadata
+
+	tokenData := &mock.TokenMetadata{
+		Name: "kitty",
+		Data: "test data",
+	}
+	tokenMetadata, err := codectypes.NewAnyWithValue(tokenData)
+	suite.Require().NoError(err, "NewAnyWithValue error")
+
+	suite.tokenMetadata = tokenMetadata
+}
+
+func (suite *KeeperTestSuite) MarshalClassMetadata() string {
+	codec := suite.chainA.App.AppCodec()
+	bz, err := codec.MarshalJSON(suite.classMetadata)
+	suite.Require().NoError(err, "MarshalClassMetadata error")
+	return base64.RawStdEncoding.EncodeToString(bz)
+}
+
+func (suite *KeeperTestSuite) MarshalTokenMetadata() string {
+	codec := suite.chainA.App.AppCodec()
+	bz, err := codec.MarshalJSON(suite.tokenMetadata)
+	suite.Require().NoError(err, "MarshalTokenMetadata error")
+	return base64.RawStdEncoding.EncodeToString(bz)
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

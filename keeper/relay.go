@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -34,16 +33,15 @@ import (
 // For example, assume these steps of transfer occur:
 // A -> B -> C -> A -> C -> B -> A
 //
-//|                    sender  chain                      |                       receiver     chain              |
-//| :-----: | -------------------------: | :------------: | :------------: | -------------------------: | :-----: |
-//|  chain  |                    classID | (port,channel) | (port,channel) |                    classID |  chain  |
-//|    A    |                   nftClass |    (p1,c1)     |    (p2,c2)     |             p2/c2/nftClass |    B    |
-//|    B    |             p2/c2/nftClass |    (p3,c3)     |    (p4,c4)     |       p4/c4/p2/c2/nftClass |    C    |
-//|    C    |       p4/c4/p2/c2/nftClass |    (p5,c5)     |    (p6,c6)     | p6/c6/p4/c4/p2/c2/nftClass |    A    |
-//|    A    | p6/c6/p4/c4/p2/c2/nftClass |    (p6,c6)     |    (p5,c5)     |       p4/c4/p2/c2/nftClass |    C    |
-//|    C    |       p4/c4/p2/c2/nftClass |    (p4,c4)     |    (p3,c3)     |             p2/c2/nftClass |    B    |
-//|    B    |             p2/c2/nftClass |    (p2,c2)     |    (p1,c1)     |                   nftClass |    A    |
-//
+// |                    sender  chain                      |                       receiver     chain              |
+// | :-----: | -------------------------: | :------------: | :------------: | -------------------------: | :-----: |
+// |  chain  |                    classID | (port,channel) | (port,channel) |                    classID |  chain  |
+// |    A    |                   nftClass |    (p1,c1)     |    (p2,c2)     |             p2/c2/nftClass |    B    |
+// |    B    |             p2/c2/nftClass |    (p3,c3)     |    (p4,c4)     |       p4/c4/p2/c2/nftClass |    C    |
+// |    C    |       p4/c4/p2/c2/nftClass |    (p5,c5)     |    (p6,c6)     | p6/c6/p4/c4/p2/c2/nftClass |    A    |
+// |    A    | p6/c6/p4/c4/p2/c2/nftClass |    (p6,c6)     |    (p5,c5)     |       p4/c4/p2/c2/nftClass |    C    |
+// |    C    |       p4/c4/p2/c2/nftClass |    (p4,c4)     |    (p3,c3)     |             p2/c2/nftClass |    B    |
+// |    B    |             p2/c2/nftClass |    (p2,c2)     |    (p1,c1)     |                   nftClass |    A    |
 func (k Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -54,6 +52,7 @@ func (k Keeper) SendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
+	memo string,
 ) error {
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -90,6 +89,7 @@ func (k Keeper) SendTransfer(
 		sequence,
 		timeoutHeight,
 		timeoutTimestamp,
+		memo,
 	)
 	if err != nil {
 		return err
@@ -173,7 +173,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.IsAwayFromOrigin(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId) {
 		for _, tokenID := range data.TokenIds {
-			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, sender); err != nil {
+			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
 				return err
 			}
 		}
@@ -181,11 +181,13 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	}
 
 	for i, tokenID := range data.TokenIds {
-		if err := k.nftKeeper.Mint(ctx, nft.NFT{
-			ClassId: voucherClassID,
-			Id:      tokenID,
-			Uri:     data.TokenUris[i],
-		}, sender); err != nil {
+		if err := k.nftKeeper.Mint(ctx,
+			voucherClassID,
+			tokenID,
+			types.GetIfExist(i, data.TokenUris),
+			types.GetIfExist(i, data.TokenData),
+			sender,
+		); err != nil {
 			return err
 		}
 	}
@@ -208,6 +210,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	sequence uint64,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
+	memo string,
 ) (channeltypes.Packet, error) {
 	class, exist := k.nftKeeper.GetClass(ctx, classID)
 	if !exist {
@@ -219,6 +222,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		fullClassPath = classID
 		err           error
 		tokenURIs     []string
+		tokenData     []string
 	)
 
 	// deconstruct the token denomination into the denomination trace info
@@ -232,36 +236,48 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 
 	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
-
 	for _, tokenID := range tokenIDs {
-		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
-		if !exist {
-			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
-		}
-		tokenURIs = append(tokenURIs, nft.GetUri())
-
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
 			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
-		if !isAwayFromOrigin {
+		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
+		if !exist {
+			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+		}
+		tokenURIs = append(tokenURIs, nft.GetURI())
+		tokenData = append(tokenData, nft.GetData())
+
+		if isAwayFromOrigin {
+			// create the escrow address for the tokens
+			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
+				return channeltypes.Packet{}, err
+			}
+		} else {
 			if err := k.nftKeeper.Burn(ctx, classID, tokenID); err != nil {
 				return channeltypes.Packet{}, err
 			}
-			continue
-		}
-
-		// create the escrow address for the tokens
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.nftKeeper.Transfer(ctx, classID, tokenID, escrowAddress); err != nil {
-			return channeltypes.Packet{}, err
 		}
 	}
 
 	packetData := types.NewNonFungibleTokenPacketData(
-		fullClassPath, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
+		fullClassPath,
+		class.GetURI(),
+		class.GetData(),
+		tokenIDs,
+		tokenURIs,
+		sender.String(),
+		receiver,
+		tokenData,
+		memo,
 	)
+
+	// check packet
+	if err := packetData.ValidateBasic(); err != nil {
+		return channeltypes.Packet{}, err
+	}
 
 	return channeltypes.NewPacket(
 		packetData.GetBytes(),
@@ -285,6 +301,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	if err != nil {
 		return err
 	}
+
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		// since SendPacket did not prefix the classID, we must prefix classID here
 		classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())
@@ -298,13 +315,9 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		}
 
 		voucherClassID := classTrace.IBCClassID()
-		if !k.nftKeeper.HasClass(ctx, voucherClassID) {
-			if err := k.nftKeeper.SaveClass(ctx, nft.Class{
-				Id:  voucherClassID,
-				Uri: data.ClassUri,
-			}); err != nil {
-				return err
-			}
+		if err := k.nftKeeper.CreateOrUpdateClass(ctx,
+			voucherClassID, data.ClassUri, data.ClassData); err != nil {
+			return err
 		}
 
 		ctx.EventManager().EmitEvent(
@@ -314,13 +327,14 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 				sdk.NewAttribute(types.AttributeKeyClassID, voucherClassID),
 			),
 		)
-
 		for i, tokenID := range data.TokenIds {
-			if err := k.nftKeeper.Mint(ctx, nft.NFT{
-				ClassId: voucherClassID,
-				Id:      tokenID,
-				Uri:     data.TokenUris[i],
-			}, receiver); err != nil {
+			if err := k.nftKeeper.Mint(ctx,
+				voucherClassID,
+				tokenID,
+				types.GetIfExist(i, data.TokenUris),
+				types.GetIfExist(i, data.TokenData),
+				receiver,
+			); err != nil {
 				return err
 			}
 		}
@@ -335,9 +349,9 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
-	for _, tokenID := range data.TokenIds {
+	for i, tokenID := range data.TokenIds {
 		if err := k.nftKeeper.Transfer(ctx,
-			voucherClassID, tokenID, receiver); err != nil {
+			voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), receiver); err != nil {
 			return err
 		}
 	}

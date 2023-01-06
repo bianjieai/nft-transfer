@@ -21,7 +21,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 	if err := k.SendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.ClassId, msg.TokenIds,
-		sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Memo,
 	); err != nil {
 		return nil, err
 	}
