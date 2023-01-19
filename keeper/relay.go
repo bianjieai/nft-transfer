@@ -279,10 +279,8 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		return channeltypes.Packet{}, err
 	}
 
-	// check and shape content
-	if err := packetData.ShapeContent(); err != nil {
-		return channeltypes.Packet{}, err
-	}
+	// shape content
+	packetData.ShapeContent()
 
 	return channeltypes.NewPacket(
 		packetData.GetBytes(),

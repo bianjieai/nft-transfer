@@ -64,16 +64,8 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenUri must be 0 or the same as the length of TokenIds")
 	}
 
-	if _, err := ValidateContent(nftpd.TokenUris); err != nil {
-		return err
-	}
-
 	if (len(nftpd.TokenData) != 0) && (len(nftpd.TokenIds) != len(nftpd.TokenData)) {
 		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenData must be 0 or the same as the length of TokenIds")
-	}
-
-	if _, err := ValidateContent(nftpd.TokenData); err != nil {
-		return err
 	}
 
 	if strings.TrimSpace(nftpd.Sender) == "" {
@@ -86,30 +78,19 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	return nil
 }
 
-// ShapeContent will validate and reshape tokenUris and tokenData in NonFungibleTokenPacketData:
-// 1. if tokenUris/tokenData is ["","",""], then set it to nil.
-// 2. if tokenUris/tokenData is ["a","b","c"], then keep it.
-// 3. if tokenUris/tokenData is ["a","","c"], then it's invalid.
+// ShapeContent will reshape tokenUris and tokenData in NonFungibleTokenPacketData:
+// 1. if tokenUris/tokenData is ["","",""] or [], then set it to nil.
+// 2. if tokenUris/tokenData is ["a","b","c"] or ["a", "", "c"], then keep it.
 // NOTE: Only use this before sending pkg.
-func (nftpd *NonFungibleTokenPacketData) ShapeContent() error {
+func (nftpd *NonFungibleTokenPacketData) ShapeContent() {
 
-	shape, err := ValidateContent(nftpd.TokenUris)
-	if err != nil {
-		return sdkerrors.Wrap(err, "entries of TokenUris must be either all empty string or all non-empty string")
-	}
-	if shape {
+	if shape := requireShape(nftpd.TokenUris); shape {
 		nftpd.TokenUris = nil
 	}
 
-	shape, err = ValidateContent(nftpd.TokenData)
-	if err != nil {
-		return sdkerrors.Wrap(err, "entries of TokenData must be either all empty string or all non-empty string")
-	}
-	if shape {
+	if shape := requireShape(nftpd.TokenData); shape {
 		nftpd.TokenData = nil
 	}
-
-	return nil
 }
 
 // GetBytes is a helper for serializing
@@ -117,16 +98,15 @@ func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
 }
 
-// ValidateContent is used to validate contents of TokenUris/TokenData if TokenUris/TokenData
-// has the invalid form of ["a","","c"]. It returns true if contents need to be shaped, false if
-// needless, and error if invalid.
-func ValidateContent(contents []string) (shape bool, err error) {
+// requireShape checks if TokenUris/TokenData needs to be set as nil
+func requireShape(contents []string) bool {
 	if contents == nil {
-		return false, nil
+		return false
 	}
 
+	// empty slice of string
 	if len(contents) == 0 {
-		return true, nil
+		return true
 	}
 
 	emptyStringCount := 0
@@ -135,16 +115,12 @@ func ValidateContent(contents []string) (shape bool, err error) {
 			emptyStringCount++
 		}
 	}
-
+	// slice of string with only empty string.
 	if emptyStringCount == len(contents) {
-		return true, nil
+		return true
 	}
 
-	if emptyStringCount == 0 {
-		return false, nil
-	}
-
-	return false, ErrInvalidPacket
+	return false
 }
 
 func GetIfExist(i int, data []string) string {

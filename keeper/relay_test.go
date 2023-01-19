@@ -152,7 +152,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	baseClassID := "cryptoCat"
 	classURI := "cat_uri"
 	nftID := "kitty"
-	nftID2 := "mary"
 	nftURI := "kittt_uri"
 
 	testCases := []struct {
@@ -195,14 +194,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{"empty nftURIs", func() {
 			nftURIs = nil
 		}, true, true},
-		{"invalid nftURIs", func() {
-			nftIDs = []string{nftID, nftID2}
-			nftURIs = []string{nftURI, ""}
-		}, true, false},
-		{"invalid nftDatas", func() {
-			nftIDs = []string{nftID, nftID2}
-			nftMetaDatas = append(nftMetaDatas, "")
-		}, true, false},
 		{"invalid receiver address", func() {
 			receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
 		}, true, false},

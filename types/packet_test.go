@@ -42,9 +42,9 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "invalid packet with tokenUris of empty string entry",
+			name:    "valid packet with tokenUris of empty string entry",
 			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty", "mary"}, []string{"1", ""}, tokenData, sender, receiver, "memo"},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name:    "invalid packet with unmatched tokenUris number",
@@ -67,9 +67,9 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "invalid packet with tokenData of empty string entry",
+			name:    "valid packet with tokenData of empty string entry",
 			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty", "mary"}, []string{}, []string{"1", ""}, sender, receiver, "memo"},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name:    "invalid packet with unmatched tokenData number",
