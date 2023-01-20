@@ -78,24 +78,27 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	return nil
 }
 
-// ShapeContent will reshape tokenUris and tokenData in NonFungibleTokenPacketData:
-// 1. if tokenUris/tokenData is ["","",""] or [], then set it to nil.
-// 2. if tokenUris/tokenData is ["a","b","c"] or ["a", "", "c"], then keep it.
-// NOTE: Only use this before sending pkg.
-func (nftpd *NonFungibleTokenPacketData) ShapeContent() {
-
-	if shape := requireShape(nftpd.TokenUris); shape {
+// GetBytes is a helper for serializing
+func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
+	// Format will reshape tokenUris and tokenData in NonFungibleTokenPacketData:
+	// 1. if tokenUris/tokenData is ["","",""] or [], then set it to nil.
+	// 2. if tokenUris/tokenData is ["a","b","c"] or ["a", "", "c"], then keep it.
+	// NOTE: Only use this before sending pkg.
+	if requireShape(nftpd.TokenUris) {
 		nftpd.TokenUris = nil
 	}
 
-	if shape := requireShape(nftpd.TokenData); shape {
+	if requireShape(nftpd.TokenData) {
 		nftpd.TokenData = nil
 	}
+	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
 }
 
-// GetBytes is a helper for serializing
-func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
+func GetIfExist(i int, data []string) string {
+	if i < 0 || i >= len(data) {
+		return ""
+	}
+	return data[i]
 }
 
 // requireShape checks if TokenUris/TokenData needs to be set as nil
@@ -111,7 +114,7 @@ func requireShape(contents []string) bool {
 
 	emptyStringCount := 0
 	for _, v := range contents {
-		if v == "" {
+		if len(v) == 0 {
 			emptyStringCount++
 		}
 	}
@@ -121,11 +124,4 @@ func requireShape(contents []string) bool {
 	}
 
 	return false
-}
-
-func GetIfExist(i int, data []string) string {
-	if i < 0 || i >= len(data) {
-		return ""
-	}
-	return data[i]
 }
