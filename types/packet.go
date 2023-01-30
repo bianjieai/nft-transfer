@@ -80,6 +80,17 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serializing
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
+	// Format will reshape tokenUris and tokenData in NonFungibleTokenPacketData:
+	// 1. if tokenUris/tokenData is ["","",""] or [], then set it to nil.
+	// 2. if tokenUris/tokenData is ["a","b","c"] or ["a", "", "c"], then keep it.
+	// NOTE: Only use this before sending pkg.
+	if requireShape(nftpd.TokenUris) {
+		nftpd.TokenUris = nil
+	}
+
+	if requireShape(nftpd.TokenData) {
+		nftpd.TokenData = nil
+	}
 	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
 }
 
@@ -88,4 +99,29 @@ func GetIfExist(i int, data []string) string {
 		return ""
 	}
 	return data[i]
+}
+
+// requireShape checks if TokenUris/TokenData needs to be set as nil
+func requireShape(contents []string) bool {
+	if contents == nil {
+		return false
+	}
+
+	// empty slice of string
+	if len(contents) == 0 {
+		return true
+	}
+
+	emptyStringCount := 0
+	for _, v := range contents {
+		if len(v) == 0 {
+			emptyStringCount++
+		}
+	}
+	// slice of string with only empty string.
+	if emptyStringCount == len(contents) {
+		return true
+	}
+
+	return false
 }

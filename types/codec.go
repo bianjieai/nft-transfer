@@ -56,7 +56,7 @@ func MustProtoMarshalJSON(msg proto.Message) []byte {
 // ProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
 // bytes of a message.
 func ProtoMarshalJSON(msg proto.Message, resolver jsonpb.AnyResolver) ([]byte, error) {
-	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: true, AnyResolver: resolver}
+	jm := &jsonpb.Marshaler{OrigName: false, EmitDefaults: false, AnyResolver: resolver}
 	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
 	if err != nil {
 		return nil, err
