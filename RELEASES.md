@@ -97,4 +97,6 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 
 | Go   | nft-transfer | ibc-go | Cosmos SDK | Tendermint |
 | ---- | ------------ | ------ | ---------- | ---------- |
-| 1.18 | main         | v5.0.1 | v0.46.3    | v0.34.22   |
+| 1.18 | v1.1.1-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
+| 1.18 | v1.1.0-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
+| 1.18 | v1.0.0-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
