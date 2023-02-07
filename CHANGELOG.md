@@ -34,7 +34,23 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v1.1.1-beta]
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* [\#7](https://github.com/bianjieai/nft-transfer/pull/7) modify JSON encoding rules
+
+### Features
+
+### Bug Fixes
+
+## [v1.1.0-beta]
 
 ### Dependencies
 

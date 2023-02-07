@@ -182,36 +182,25 @@ func (im IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	var (
-		ack    = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		data   types.NonFungibleTokenPacketData
-		ackErr error
+		ack  = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		data types.NonFungibleTokenPacketData
+		err  error
 	)
 
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ackErr = sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-721 nft-transfer packet data")
-		ack = channeltypes.NewErrorAcknowledgement(ackErr)
+	if err = types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		ack = channeltypes.NewErrorAcknowledgement(
+			sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-721 nft-transfer packet data"),
+		)
 	}
 
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		if err := im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
+		if err = im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 		}
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyClassID, data.ClassId),
-			sdk.NewAttribute(types.AttributeKeyTokenIDs, strings.Join(data.TokenIds, ",")),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-		),
-	)
-
+	keeper.EmitAcknowledgementEvent(ctx, data, ack, err)
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
 }
@@ -225,11 +214,14 @@ func (im IBCModule) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet acknowledgement: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal ICS-721 transfer packet acknowledgement: %v", err)
 	}
+
 	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet data: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal ICS-721 transfer packet data: %s", err.Error())
 	}
 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
