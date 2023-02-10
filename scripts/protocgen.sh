@@ -14,15 +14,8 @@ set -eo pipefail
 # protoc_gen_gocosmos
 
 cd proto
-proto_dirs=$(find ./ -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
-for dir in $proto_dirs; do
-  # shellcheck disable=SC2044
-  for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-    if grep "option go_package" $file &> /dev/null ; then
-      buf generate --template buf.gen.gogo.yaml $file
-    fi
-  done
-done
+
+buf generate --template buf.gen.gogo.yaml $file
 
 cd ..
 

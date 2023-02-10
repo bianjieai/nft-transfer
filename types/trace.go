@@ -11,7 +11,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // ParseHexHash parses a hex hash in string format to bytes and validates its correctness.
@@ -59,8 +59,8 @@ func IsAwayFromOrigin(sourcePort, sourceChannel, fullClassPath string) bool {
 //
 // Examples:
 //
-// 	- "port-1/channel-1/class-1" => ClassTrace{Path: "port-1/channel-1", BaseClassId: "class-1"}
-// 	- "class-1" => ClassTrace{Path: "", BaseClassId: "class-1"}
+//   - "port-1/channel-1/class-1" => ClassTrace{Path: "port-1/channel-1", BaseClassId: "class-1"}
+//   - "class-1" => ClassTrace{Path: "", BaseClassId: "class-1"}
 func ParseClassTrace(rawClassID string) ClassTrace {
 	classSplit := strings.Split(rawClassID, "/")
 

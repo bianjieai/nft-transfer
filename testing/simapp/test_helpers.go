@@ -31,7 +31,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/bianjieai/nft-transfer/testing/simapp/helpers"
-	"github.com/cosmos/ibc-go/v5/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
