@@ -1,4 +1,4 @@
-package ibctesting
+package ics721testing
 
 import (
 	"testing"

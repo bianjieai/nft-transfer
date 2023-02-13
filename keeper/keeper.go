@@ -9,6 +9,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
@@ -20,7 +21,7 @@ type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.Codec
 
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	nftKeeper     types.NFTKeeper
@@ -31,7 +32,7 @@ type Keeper struct {
 // NewKeeper creates a new IBC nft-transfer Keeper instance
 func NewKeeper(
 	cdc codec.Codec, key storetypes.StoreKey,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{

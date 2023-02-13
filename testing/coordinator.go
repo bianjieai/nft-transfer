@@ -1,4 +1,4 @@
-package ibctesting
+package ics721testing
 
 import (
 	"testing"
@@ -7,8 +7,12 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
+type Coordinator struct {
+	*ibctesting.Coordinator
+}
+
 // NewCoordinator initializes Coordinator with N TestChain's
-func NewCoordinator(t *testing.T, n int) *ibctesting.Coordinator {
+func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*ibctesting.TestChain)
 	coord := &ibctesting.Coordinator{
 		T:           t,
@@ -21,5 +25,5 @@ func NewCoordinator(t *testing.T, n int) *ibctesting.Coordinator {
 	}
 	coord.Chains = chains
 
-	return coord
+	return &Coordinator{coord}
 }

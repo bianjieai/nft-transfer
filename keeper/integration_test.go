@@ -6,12 +6,11 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 
-	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestKeeperTestSuite1(t *testing.T) {
@@ -35,7 +34,8 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 	var packet channeltypes.Packet
 
 	//============================== setup start===============================
-	nftKeeper := pathA2B.EndpointA.Chain.GetSimApp().NFTKeeper
+
+	nftKeeper := suite.GetSimApp(pathA2B.EndpointA.Chain).NFTKeeper
 	err := nftKeeper.SaveClass(pathA2B.EndpointA.Chain.GetContext(), nft.Class{
 		Id:   classID,
 		Uri:  classURI,
@@ -184,16 +184,13 @@ func (suite *KeeperTestSuite) transferNFT(
 	sender, receiver string,
 ) channeltypes.Packet {
 	msgTransfer := &types.MsgTransfer{
-		SourcePort:    fromEndpoint.ChannelConfig.PortID,
-		SourceChannel: fromEndpoint.ChannelID,
-		ClassId:       classID,
-		TokenIds:      []string{nftID},
-		Sender:        sender,
-		Receiver:      receiver,
-		TimeoutHeight: clienttypes.Height{
-			RevisionNumber: 0,
-			RevisionHeight: 100,
-		},
+		SourcePort:       fromEndpoint.ChannelConfig.PortID,
+		SourceChannel:    fromEndpoint.ChannelID,
+		ClassId:          classID,
+		TokenIds:         []string{nftID},
+		Sender:           sender,
+		Receiver:         receiver,
+		TimeoutHeight:    toEndpoint.Chain.GetTimeoutHeight(),
 		TimeoutTimestamp: 0,
 	}
 
@@ -213,12 +210,12 @@ func (suite *KeeperTestSuite) transferNFT(
 	if isAwayFromOrigin {
 		suite.Require().Equal(
 			types.GetEscrowAddress(fromEndpoint.ChannelConfig.PortID, fromEndpoint.ChannelID),
-			fromEndpoint.Chain.GetSimApp().NFTKeeper.GetOwner(fromEndpoint.Chain.GetContext(), classID, nftID),
+			suite.GetSimApp(fromEndpoint.Chain).NFTKeeper.GetOwner(fromEndpoint.Chain.GetContext(), classID, nftID),
 			"escrow nft failed",
 		)
 	} else {
 		suite.Require().False(
-			fromEndpoint.Chain.GetSimApp().NFTKeeper.HasNFT(fromEndpoint.Chain.GetContext(), classID, nftID),
+			suite.GetSimApp(fromEndpoint.Chain).NFTKeeper.HasNFT(fromEndpoint.Chain.GetContext(), classID, nftID),
 			"burn nft failed",
 		)
 	}
@@ -262,7 +259,8 @@ func (suite *KeeperTestSuite) receiverNFT(
 	}
 
 	// check class
-	class, found := toEndpoint.Chain.GetSimApp().
+
+	class, found := suite.GetSimApp(toEndpoint.Chain).
 		NFTKeeper.GetClass(toEndpoint.Chain.GetContext(), classID)
 	suite.Require().True(found, "not found class")
 
@@ -277,13 +275,13 @@ func (suite *KeeperTestSuite) receiverNFT(
 	// check nft owner
 	suite.Require().Equal(
 		data.GetReceiver(),
-		toEndpoint.Chain.GetSimApp().
+		suite.GetSimApp(toEndpoint.Chain).
 			NFTKeeper.GetOwner(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0]).String(),
 		"nft not equal",
 	)
 
 	// check nft
-	token, found := toEndpoint.Chain.GetSimApp().
+	token, found := suite.GetSimApp(toEndpoint.Chain).
 		NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0])
 	suite.Require().True(found, "not found class")
 

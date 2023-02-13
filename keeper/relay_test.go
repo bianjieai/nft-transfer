@@ -11,8 +11,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
-	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestKeeperTestSuite2(t *testing.T) {
@@ -21,9 +21,10 @@ func TestKeeperTestSuite2(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
-		path    *ibctesting.Path
-		err     error
-		classID string
+		path          *ibctesting.Path
+		err           error
+		classID       string
+		timeoutHeight clienttypes.Height
 	)
 
 	baseClassID := "cryptoCat"
@@ -42,7 +43,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.coordinator.CreateChannels(path)
 				classID = baseClassID
 
-				nftKeeper := path.EndpointA.Chain.GetSimApp().NFTKeeper
+				nftKeeper := suite.GetSimApp(path.EndpointA.Chain).NFTKeeper
 				err = nftKeeper.SaveClass(path.EndpointA.Chain.GetContext(), nft.Class{
 					Id:  classID,
 					Uri: classURI,
@@ -56,6 +57,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					Data:    suite.tokenMetadata,
 				}, path.EndpointA.Chain.SenderAccount.GetAddress())
 				suite.Require().NoError(err, "Mint error")
+				timeoutHeight = path.EndpointB.Chain.GetTimeoutHeight()
 			},
 			true,
 		},
@@ -68,10 +70,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 						path.EndpointA.ChannelConfig.PortID,
 						path.EndpointA.ChannelID,
 					) + baseClassID)
-				path.EndpointB.Chain.GetSimApp().NFTTransferKeeper.SetClassTrace(path.EndpointB.Chain.GetContext(), trace)
+				suite.GetSimApp(path.EndpointB.Chain).NFTTransferKeeper.SetClassTrace(path.EndpointB.Chain.GetContext(), trace)
 
 				classID = trace.IBCClassID()
-				nftKeeper := path.EndpointB.Chain.GetSimApp().NFTKeeper
+				nftKeeper := suite.GetSimApp(path.EndpointB.Chain).NFTKeeper
 				err = nftKeeper.SaveClass(path.EndpointB.Chain.GetContext(), nft.Class{
 					Id:   classID,
 					Uri:  classURI,
@@ -85,10 +87,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					Uri:     nftURI,
 				}, path.EndpointB.Chain.SenderAccount.GetAddress())
 				suite.Require().NoError(err, "Mint error")
+				timeoutHeight = path.EndpointA.Chain.GetTimeoutHeight()
 			},
 			false,
 		},
 	}
+
+	kts := suite
 
 	for _, tc := range testCases {
 		tc := tc
@@ -101,39 +106,46 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			if !tc.isAwayFromOrigin {
 				ctx := path.EndpointB.Chain.GetContext()
-				err = path.EndpointB.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
+
+				_, err = kts.GetSimApp(path.EndpointB.Chain).NFTTransferKeeper.SendTransfer(
 					ctx,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
 					classID,
 					[]string{nftID},
 					path.EndpointB.Chain.SenderAccount.GetAddress(),
-					path.EndpointA.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
+					path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+					timeoutHeight,
+					0,
+					"memo",
 				)
 				suite.Require().NoError(err)
 
 				suite.Require().False(
-					path.EndpointB.Chain.GetSimApp().NFTKeeper.HasNFT(ctx, classID, nftID),
+					kts.GetSimApp(path.EndpointB.Chain).NFTKeeper.HasNFT(ctx, classID, nftID),
 					"burn nft failed",
 				)
 				return
 			}
 
 			ctx := path.EndpointA.Chain.GetContext()
-			err = path.EndpointA.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
+			_, err = kts.GetSimApp(path.EndpointA.Chain).NFTTransferKeeper.SendTransfer(
 				ctx,
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				classID,
 				[]string{nftID},
 				path.EndpointA.Chain.SenderAccount.GetAddress(),
-				path.EndpointB.Chain.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0, "memo",
+				path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+				timeoutHeight,
+				0,
+				"memo",
 			)
 
 			suite.Require().NoError(err)
 			suite.Require().Equal(
 				types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-				path.EndpointA.Chain.GetSimApp().NFTKeeper.GetOwner(ctx, classID, nftID),
+				kts.GetSimApp(path.EndpointA.Chain).NFTKeeper.GetOwner(ctx, classID, nftID),
 				"escrow nft failed",
 			)
 		})
@@ -154,6 +166,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	nftID := "kitty"
 	nftURI := "kittt_uri"
 
+	kts := suite
+
 	testCases := []struct {
 		msg              string
 		malleate         func()
@@ -167,7 +181,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path.EndpointA.ChannelID,
 			) + baseClassID
 
-			suite.chainB.GetSimApp().NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
+			kts.GetSimApp(kts.chainB).NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
 				Id:   baseClassID,
 				Uri:  classURI,
 				Data: suite.classMetadata,
@@ -177,7 +191,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
 			)
-			suite.chainB.GetSimApp().NFTKeeper.Mint(suite.chainB.GetContext(), nft.NFT{
+			kts.GetSimApp(kts.chainB).NFTKeeper.Mint(suite.chainB.GetContext(), nft.NFT{
 				ClassId: baseClassID,
 				Id:      nftID,
 				Uri:     nftURI,
@@ -240,7 +254,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			err := suite.chainB.GetSimApp().
+			err := kts.GetSimApp(kts.chainB).
 				NFTTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			if !tc.expPass {
@@ -257,18 +271,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				suite.Require().Equal(
 					receiver,
-					suite.chainB.GetSimApp().NFTKeeper.GetOwner(suite.chainB.GetContext(), trace.IBCClassID(), nftID).String(),
+					kts.GetSimApp(kts.chainB).NFTKeeper.GetOwner(suite.chainB.GetContext(), trace.IBCClassID(), nftID).String(),
 					"receive packet failed",
 				)
 
 				suite.Require().True(
-					suite.chainB.GetSimApp().NFTTransferKeeper.HasClassTrace(suite.chainB.GetContext(), trace.Hash()),
+					kts.GetSimApp(kts.chainB).NFTTransferKeeper.HasClassTrace(suite.chainB.GetContext(), trace.Hash()),
 					"not found class trace",
 				)
 
 			} else {
 				suite.Require().False(
-					suite.chainB.GetSimApp().NFTKeeper.HasNFT(suite.chainB.GetContext(), classID, nftID),
+					kts.GetSimApp(kts.chainB).NFTKeeper.HasNFT(suite.chainB.GetContext(), classID, nftID),
 					"burn nft failed")
 			}
 		})
@@ -290,6 +304,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	nftID := "kitty"
 	nftURI := "kittt_uri"
 
+	kts := suite
+
 	testCases := []struct {
 		msg      string
 		ack      channeltypes.Acknowledgement
@@ -308,7 +324,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			) + baseClassID
 
 			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
-			suite.chainA.GetSimApp().NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+			kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
 				Id:  ibcClassID,
 				Uri: classURI,
 			})
@@ -324,7 +340,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			) + baseClassID
 
 			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
-			suite.chainA.GetSimApp().NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+			kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
 				Id:  ibcClassID,
 				Uri: classURI,
 			})
@@ -334,7 +350,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				path.EndpointA.ChannelID,
 			)
 
-			suite.chainA.GetSimApp().NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{
+			kts.GetSimApp(kts.chainA).NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{
 				ClassId: ibcClassID,
 				Id:      nftID,
 				Uri:     nftURI,
@@ -381,7 +397,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				0,
 			)
 
-			err := suite.chainA.GetSimApp().NFTTransferKeeper.OnAcknowledgementPacket(
+			err := kts.GetSimApp(kts.chainA).NFTTransferKeeper.OnAcknowledgementPacket(
 				suite.chainA.GetContext(),
 				packet,
 				data, tc.ack,
@@ -399,7 +415,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			suite.Require().Equal(
 				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainA.GetSimApp().NFTKeeper.GetOwner(suite.chainA.GetContext(), trace.IBCClassID(), nftID).String(),
+				kts.GetSimApp(kts.chainA).NFTKeeper.GetOwner(suite.chainA.GetContext(), trace.IBCClassID(), nftID).String(),
 				"refund failed",
 			)
 		})

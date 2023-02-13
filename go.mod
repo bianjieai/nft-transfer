@@ -4,6 +4,8 @@ module github.com/bianjieai/nft-transfer
 
 require (
 	cosmossdk.io/math v1.0.0-beta.4
+	cosmossdk.io/simapp v0.0.0-20221216140705-ee8890cf30e7
+	cosmossdk.io/tools/rosetta v0.2.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/cosmos/cosmos-sdk v0.47.0-rc2
 	github.com/cosmos/gogoproto v1.4.4
@@ -12,6 +14,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0
@@ -32,7 +35,6 @@ require (
 	cosmossdk.io/core v0.3.2 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
 	cosmossdk.io/errors v1.0.0-beta.7 // indirect
-	cosmossdk.io/tools/rosetta v0.2.0 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -125,7 +127,6 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/rs/zerolog v1.28.0 // indirect

@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 			func() {
 				expTrace.Path = "nft-transfer/channelToA/nft-transfer/channelToB"
 				expTrace.BaseClassId = "kitty"
-				suite.chainA.GetSimApp().NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
+				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryClassTraceRequest{
 					Hash: expTrace.Hash().String(),
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestQueryClassTraces() {
 				expTraces = append(expTraces, types.ClassTrace{Path: "transfer/channelToA/transfer/channelToB", BaseClassId: "kitty"})
 
 				for _, trace := range expTraces {
-					suite.chainA.GetSimApp().NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
+					suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
 				}
 
 				req = &types.QueryClassTracesRequest{
