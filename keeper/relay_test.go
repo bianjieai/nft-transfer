@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 
@@ -175,22 +176,24 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path.EndpointA.ChannelID,
 			) + baseClassID
 
-			kts.GetSimApp(kts.chainB).NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
+			err := kts.GetSimApp(kts.chainB).NFTKeeper.SaveClass(suite.chainB.GetContext(), nft.Class{
 				Id:   baseClassID,
 				Uri:  classURI,
 				Data: suite.classMetadata,
 			})
+			kts.Require().NoError(err, "SaveClass failed")
 
 			escrowAddress := types.GetEscrowAddress(
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
 			)
-			kts.GetSimApp(kts.chainB).NFTKeeper.Mint(suite.chainB.GetContext(), nft.NFT{
+			err = kts.GetSimApp(kts.chainB).NFTKeeper.Mint(suite.chainB.GetContext(), nft.NFT{
 				ClassId: baseClassID,
 				Id:      nftID,
 				Uri:     nftURI,
 				Data:    suite.tokenMetadata,
 			}, escrowAddress)
+			kts.Require().NoError(err, "Mint failed")
 
 		}, false, true},
 		{"empty classID", func() {
@@ -286,7 +289,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck       = channeltypes.NewErrorAcknowledgement(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "failed packet transfer"))
+		failedAck       = channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "failed packet transfer"))
 		path            *ibctesting.Path
 		trace           types.ClassTrace
 		classID         string
@@ -318,10 +321,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			) + baseClassID
 
 			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
-			kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+			err := kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
 				Id:  ibcClassID,
 				Uri: classURI,
 			})
+			kts.Require().NoError(err, "SaveClass failed")
 
 		}, false, true},
 		{"successful refund when isAwayFromOrigin is true", failedAck, func() {
@@ -334,21 +338,23 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			) + baseClassID
 
 			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
-			kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+			err := kts.GetSimApp(kts.chainA).NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
 				Id:  ibcClassID,
 				Uri: classURI,
 			})
+			kts.Require().NoError(err, "SaveClass failed")
 
 			escrowAddress := types.GetEscrowAddress(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 			)
 
-			kts.GetSimApp(kts.chainA).NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{
+			err = kts.GetSimApp(kts.chainA).NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{
 				ClassId: ibcClassID,
 				Id:      nftID,
 				Uri:     nftURI,
 			}, escrowAddress)
+			kts.Require().NoError(err, "Mint failed")
 
 		}, false, true},
 	}

@@ -7,10 +7,10 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -133,10 +133,10 @@ func validateTraceIdentifiers(identifiers []string) error {
 	// validate correctness of port and channel identifiers
 	for i := 0; i < len(identifiers); i += 2 {
 		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
-			return sdkerrors.Wrapf(err, "invalid port ID at position %d", i)
+			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
 		}
 		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
-			return sdkerrors.Wrapf(err, "invalid channel ID at position %d", i)
+			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
 		}
 	}
 	return nil
@@ -155,7 +155,7 @@ func (t Traces) Validate() error {
 		}
 
 		if err := trace.Validate(); err != nil {
-			return sdkerrors.Wrapf(err, "failed class trace %d validation", i)
+			return errorsmod.Wrapf(err, "failed class trace %d validation", i)
 		}
 		seenTraces[hash] = true
 	}

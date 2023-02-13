@@ -3,6 +3,7 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,7 +57,7 @@ func (k Keeper) SendTransfer(
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	destinationPort := channel.GetCounterparty().GetPortID()
@@ -64,7 +65,7 @@ func (k Keeper) SendTransfer(
 
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
@@ -204,7 +205,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 ) (types.NonFungibleTokenPacketData, error) {
 	class, exist := k.nftKeeper.GetClass(ctx, classID)
 	if !exist {
-		return types.NonFungibleTokenPacketData{}, sdkerrors.Wrap(types.ErrInvalidClassID, "classId not exist")
+		return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidClassID, "classId not exist")
 	}
 
 	var (
@@ -229,12 +230,12 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	for _, tokenID := range tokenIDs {
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
-			return types.NonFungibleTokenPacketData{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
 		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
-			return types.NonFungibleTokenPacketData{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
 		}
 		tokenURIs = append(tokenURIs, nft.GetURI())
 		tokenData = append(tokenData, nft.GetData())

@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/bianjieai/nft-transfer/types"
@@ -35,7 +35,7 @@ func (k Keeper) ClassTrace(c context.Context,
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
+			errorsmod.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
 		)
 	}
 
@@ -92,7 +92,7 @@ func (k Keeper) ClassHash(c context.Context,
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
+			errorsmod.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
 		)
 	}
 
