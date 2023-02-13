@@ -1,10 +1,6 @@
 package keeper_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -12,10 +8,6 @@ import (
 	"github.com/bianjieai/nft-transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
-
-func TestKeeperTestSuite1(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
-}
 
 // The following test describes the entire cross-chain process of nft-transfer.
 // The execution sequence of the cross-chain process is:
