@@ -170,8 +170,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 
 	classTrace := types.ParseClassTrace(data.ClassId)
 	voucherClassID := classTrace.IBCClassID()
-	if types.IsAwayFromOrigin(packet.GetSourcePort(),
-		packet.GetSourceChannel(), data.ClassId) {
+	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		for _, tokenID := range data.TokenIds {
 			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
 				return err
@@ -349,7 +348,16 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
+
+	escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 	for i, tokenID := range data.TokenIds {
+		//NOTE: It must be verified here whether the nft is escrowed by the <destPort, destChannel> account
+		//FIX https://github.com/game-of-nfts/gon-evidence/issues/346
+		owner := k.nftKeeper.GetOwner(ctx, voucherClassID, tokenID)
+		if !escrowAddress.Equals(owner) {
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+		}
+
 		if err := k.nftKeeper.Transfer(ctx,
 			voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), receiver); err != nil {
 			return err
