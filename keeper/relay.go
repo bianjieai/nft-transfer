@@ -345,8 +345,11 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 
 	// we should remove the prefix. For example:
 	// p6/c6/p4/c4/p2/c2/nftClass -> p4/c4/p2/c2/nftClass
-	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
+	unprefixedClassID, err := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
+	if err != nil {
+		return err
+	}
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
 
 	escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())

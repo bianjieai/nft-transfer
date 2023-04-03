@@ -256,8 +256,9 @@ func (suite *KeeperTestSuite) receiverNFT(
 		trace := types.ParseClassTrace(prefixedClassID)
 		classID = trace.IBCClassID()
 	} else {
-		unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
+		unprefixedClassID, err := types.RemoveClassPrefix(packet.GetSourcePort(),
 			packet.GetSourceChannel(), data.ClassId)
+		suite.Require().NoError(err)
 		classID = types.ParseClassTrace(unprefixedClassID).IBCClassID()
 	}
 
