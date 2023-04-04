@@ -236,15 +236,16 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
 	for _, tokenID := range tokenIDs {
+		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
+		if !exist {
+			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+		}
+
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
 			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
-		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
-		if !exist {
-			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
-		}
 		tokenURIs = append(tokenURIs, nft.GetURI())
 		tokenData = append(tokenData, nft.GetData())
 
