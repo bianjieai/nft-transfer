@@ -13,3 +13,15 @@ message ClassTrace {
   // base classID of the relayed non-fungible token.
   string base_class_id = 2;
 }
+
+// Params defines the set of IBC nft-transfer parameters.
+// NOTE: To prevent a nft from being transferred, set the
+// TransfersEnabled parameter to true.
+message Params {
+  // send_enabled enables or disables all cross-chain nft transfers from this
+  // chain.
+  bool send_enabled = 1;
+  // receive_enabled enables or disables all cross-chain nft transfers to this
+  // chain.
+  bool receive_enabled = 2;
+}
