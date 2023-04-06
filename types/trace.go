@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )

@@ -11,7 +11,7 @@ This is visually explained in the following decision tree:
   <img src="https://raw.githubusercontent.com/cosmos/ibc-go/main/releases-decision-tree.png" alt="Releases decision tree" width="40%" />
 </p>
 
-When bumping the dependencies of [IBC-Go](https://github.com/cosmos/ibc-go)、 [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [Tendermint](https://github.com/tendermint/tendermint) we will only treat patch releases as non state-machine breaking.
+When bumping the dependencies of [IBC-Go](https://github.com/cosmos/ibc-go)、 [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [Tendermint](https://github.com/cometbft/cometbft) we will only treat patch releases as non state-machine breaking.
 
 ## <a name="backwards"></a> Backwards compatibility
 
