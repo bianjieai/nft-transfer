@@ -14,4 +14,6 @@ var (
 	ErrInvalidPacket        = errorsmod.Register(ModuleName, 7, "invalid non-fungible token packet")
 	ErrTraceNotFound        = errorsmod.Register(ModuleName, 8, "classTrace trace not found")
 	ErrMarshal              = errorsmod.Register(ModuleName, 9, "failed to marshal token data")
+	ErrSendDisabled         = errorsmod.Register(ModuleName, 10, "non-fungible token transfers from this chain are disabled")
+	ErrReceiveDisabled      = errorsmod.Register(ModuleName, 11, "non-fungible token transfers to this chain are disabled")
 )

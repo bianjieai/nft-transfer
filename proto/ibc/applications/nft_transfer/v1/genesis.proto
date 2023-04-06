@@ -12,4 +12,5 @@ message GenesisState {
   string port_id = 1;
   repeated ClassTrace traces = 2
       [ (gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false ];
+  Params params = 3 [(gogoproto.nullable) = false];
 }

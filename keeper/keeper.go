@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -18,8 +19,9 @@ import (
 
 // Keeper defines the IBC non fungible transfer keeper
 type Keeper struct {
-	storeKey storetypes.StoreKey
-	cdc      codec.Codec
+	storeKey   storetypes.StoreKey
+	cdc        codec.Codec
+	paramSpace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -31,18 +33,23 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC nft-transfer Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey,
+	cdc codec.Codec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
 	return Keeper{
-		cdc:           cdc,
 		storeKey:      key,
+		cdc:           cdc,
+		paramSpace:    paramSpace,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
 		nftKeeper:     nftKeeper,
+		authKeeper:    authKeeper,
 		scopedKeeper:  scopedKeeper,
 	}
 }

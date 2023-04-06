@@ -5,10 +5,11 @@ import (
 )
 
 // NewGenesisState creates a new ibc nft-transfer GenesisState instance.
-func NewGenesisState(portID string, traces Traces) *GenesisState {
+func NewGenesisState(portID string, traces Traces, params Params) *GenesisState {
 	return &GenesisState{
 		PortId: portID,
 		Traces: traces,
+		Params: params,
 	}
 }
 
@@ -17,6 +18,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		PortId: PortID,
 		Traces: Traces{},
+		Params: DefaultParams(),
 	}
 }
 
@@ -26,5 +28,8 @@ func (gs GenesisState) Validate() error {
 	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
 		return err
 	}
-	return gs.Traces.Validate()
+	if err := gs.Traces.Validate(); err != nil {
+		return err
+	}
+	return gs.Params.Validate()
 }
