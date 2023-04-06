@@ -81,7 +81,7 @@ func (m *ClassTrace) GetBaseClassId() string {
 
 // Params defines the set of IBC nft-transfer parameters.
 // NOTE: To prevent a nft from being transferred, set the
-// TransfersEnabled parameter to true.
+// TransfersEnabled parameter to false.
 type Params struct {
 	// send_enabled enables or disables all cross-chain nft transfers from this
 	// chain.
