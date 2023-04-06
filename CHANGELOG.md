@@ -34,6 +34,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+* [\#12](https://github.com/bianjieai/nft-transfer/pull/12) check the nft owner.
+
 ## [v1.1.1-beta]
 
 ### Dependencies

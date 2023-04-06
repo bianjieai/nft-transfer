@@ -37,9 +37,12 @@ func GetClassPrefix(portID, channelID string) string {
 // After the receiving chain receives the packet,if isAwayFromOrigin=false, it means that nft is moving
 // in the direction of the original chain, and the portID/channelID prefix of the sending chain
 // in trace.path needs to be removed
-func RemoveClassPrefix(portID, channelID, classID string) string {
+func RemoveClassPrefix(portID, channelID, classID string) (string, error) {
 	classPrefix := GetClassPrefix(portID, channelID)
-	return classID[len(classPrefix):]
+	if strings.HasPrefix(classID, classPrefix) {
+		return strings.TrimPrefix(classID, classPrefix), nil
+	}
+	return "", fmt.Errorf("invalid class:%s, no class prefix: %s", classID, classPrefix)
 }
 
 // IsAwayFromOrigin determine if non-fungible token is moving away from

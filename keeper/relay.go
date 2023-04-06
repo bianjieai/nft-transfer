@@ -162,8 +162,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 
 	classTrace := types.ParseClassTrace(data.ClassId)
 	voucherClassID := classTrace.IBCClassID()
-	if types.IsAwayFromOrigin(packet.GetSourcePort(),
-		packet.GetSourceChannel(), data.ClassId) {
+	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		for _, tokenID := range data.TokenIds {
 			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
 				return err
@@ -228,15 +227,16 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
 	for _, tokenID := range tokenIDs {
+		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
+		if !exist {
+			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+		}
+
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
 			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
-		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
-		if !exist {
-			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
-		}
 		tokenURIs = append(tokenURIs, nft.GetURI())
 		tokenData = append(tokenData, nft.GetData())
 
@@ -327,10 +327,22 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 
 	// we should remove the prefix. For example:
 	// p6/c6/p4/c4/p2/c2/nftClass -> p4/c4/p2/c2/nftClass
-	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
+	unprefixedClassID, err := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
+	if err != nil {
+		return err
+	}
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
+
+	escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 	for i, tokenID := range data.TokenIds {
+		//NOTE: It must be verified here whether the nft is escrowed by the <destPort, destChannel> account
+		//FIX https://github.com/game-of-nfts/gon-evidence/issues/346
+		owner := k.nftKeeper.GetOwner(ctx, voucherClassID, tokenID)
+		if !escrowAddress.Equals(owner) {
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+		}
+
 		if err := k.nftKeeper.Transfer(ctx,
 			voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), receiver); err != nil {
 			return err
