@@ -229,7 +229,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	for _, tokenID := range tokenIDs {
 		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
-			return types.NonFungibleTokenPacketData{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
 		}
 
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
@@ -340,7 +340,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		//FIX https://github.com/game-of-nfts/gon-evidence/issues/346
 		owner := k.nftKeeper.GetOwner(ctx, voucherClassID, tokenID)
 		if !escrowAddress.Equals(owner) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
 		if err := k.nftKeeper.Transfer(ctx,
