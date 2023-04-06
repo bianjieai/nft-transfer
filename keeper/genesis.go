@@ -26,6 +26,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}
+	k.SetParams(ctx, state.Params)
 }
 
 // ExportGenesis exports ibc nft-transfer  module's portID and class trace info into its genesis state.
@@ -33,5 +34,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		PortId: k.GetPort(ctx),
 		Traces: k.GetAllClassTraces(ctx),
+		Params: k.GetParams(ctx),
 	}
 }
