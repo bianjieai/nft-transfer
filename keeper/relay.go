@@ -174,8 +174,10 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		return err
 	}
 
-	classTrace := types.ParseClassTrace(data.ClassId)
-	voucherClassID := classTrace.IBCClassID()
+	voucherClassID, err := k.ParseClassTrace(ctx, data.ClassId)
+	if err != nil {
+		return err
+	}
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		for _, tokenID := range data.TokenIds {
 			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
@@ -349,7 +351,16 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 
 	// If the token moves in the direction of back to origin,
 	// we need to unescrow the token and transfer it to the receiver
-	voucherClassID, err := k.getVoucherClassID(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId)
+
+	// we should remove the prefix. For example:
+	// p6/c6/p4/c4/p2/c2/nftClass -> p4/c4/p2/c2/nftClass
+	unprefixedClassID, err := types.RemoveClassPrefix(packet.GetSourcePort(),
+		packet.GetSourceChannel(), data.ClassId)
+	if err != nil {
+		return err
+	}
+
+	voucherClassID, err := k.ParseClassTrace(ctx, unprefixedClassID)
 	if err != nil {
 		return err
 	}
@@ -371,18 +382,12 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	return nil
 }
 
-func (k Keeper) getVoucherClassID(ctx sdk.Context, port, channel, classID string) (string, error) {
-	// we should remove the prefix. For example:
-	// p6/c6/p4/c4/p2/c2/nftClass -> p4/c4/p2/c2/nftClass
-	unprefixedClassID, err := types.RemoveClassPrefix(port, channel, classID)
-	if err != nil {
-		return "", err
-	}
+func (k Keeper) ParseClassTrace(ctx sdk.Context, classID string) (string, error) {
 
 	// If "/" is not included after removing the prefix,
 	// it means that nft has returned to the initial chain, and the classID after removing the prefix is the real classID
-	if !strings.Contains(unprefixedClassID, "/") {
-		return unprefixedClassID, nil
+	if !strings.Contains(classID, "/") {
+		return classID, nil
 	}
 
 	// If "/" is included after removing the prefix, there are two situations:
@@ -390,10 +395,10 @@ func (k Keeper) getVoucherClassID(ctx sdk.Context, port, channel, classID string
 	//	2. The current nft returns to the relay chain, not the original chain
 
 	// First deal with case 1, if the classID can be found, return the result
-	if k.nftKeeper.HasClass(ctx, unprefixedClassID) {
-		return unprefixedClassID, nil
+	if k.nftKeeper.HasClass(ctx, classID) {
+		return classID, nil
 	}
 
 	// If not found, generate classID according to classTrace
-	return types.ParseClassTrace(unprefixedClassID).IBCClassID(), nil
+	return types.ParseClassTrace(classID).IBCClassID(), nil
 }
