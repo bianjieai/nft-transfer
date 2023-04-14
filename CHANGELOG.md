@@ -49,6 +49,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * [\#12](https://github.com/bianjieai/nft-transfer/pull/12) check the nft owner.
+* [\#16](https://github.com/bianjieai/nft-transfer/pull/12) refactor: return the sequence of packet in `MsgTransferResponse`.
 
 ## [v1.1.1-beta]
 
