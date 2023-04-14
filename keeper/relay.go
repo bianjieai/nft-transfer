@@ -174,7 +174,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		return err
 	}
 
-	voucherClassID, err := k.ParseClassTrace(ctx, data.ClassId)
+	voucherClassID, err := k.GetVoucherClassID(ctx, data.ClassId)
 	if err != nil {
 		return err
 	}
@@ -360,7 +360,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		return err
 	}
 
-	voucherClassID, err := k.ParseClassTrace(ctx, unprefixedClassID)
+	voucherClassID, err := k.GetVoucherClassID(ctx, unprefixedClassID)
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	return nil
 }
 
-func (k Keeper) ParseClassTrace(ctx sdk.Context, classID string) (string, error) {
+func (k Keeper) GetVoucherClassID(ctx sdk.Context, classID string) (string, error) {
 
 	// If "/" is not included after removing the prefix,
 	// it means that nft has returned to the initial chain, and the classID after removing the prefix is the real classID
