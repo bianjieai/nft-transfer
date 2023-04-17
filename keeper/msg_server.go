@@ -22,13 +22,11 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.SendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.ClassId, msg.TokenIds,
-		sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Memo)
+		sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Memo,
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	//TODO
-	_ = sequence
 
 	k.Logger(ctx).Info("IBC non-fungible token transfer",
 		"classID", msg.ClassId,
@@ -49,5 +47,5 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	return &types.MsgTransferResponse{}, nil
+	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

@@ -21,10 +21,9 @@ message MsgTransfer {
   option (gogoproto.goproto_getters) = false;
 
   // the port on which the packet will be sent
-  string source_port = 1 [ (gogoproto.moretags) = "yaml:\"source_port\"" ];
+  string source_port = 1;
   // the channel by which the packet will be sent
-  string source_channel = 2
-      [ (gogoproto.moretags) = "yaml:\"source_channel\"" ];
+  string source_channel = 2;
   // the class_id of tokens to be transferred
   string class_id = 3;
   // the non fungible tokens to be transferred
@@ -36,16 +35,17 @@ message MsgTransfer {
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
   ibc.core.client.v1.Height timeout_height = 7 [
-    (gogoproto.moretags) = "yaml:\"timeout_height\"",
     (gogoproto.nullable) = false
   ];
   // Timeout timestamp in absolute nanoseconds since unix epoch.
   // The timeout is disabled when set to 0.
-  uint64 timeout_timestamp = 8
-      [ (gogoproto.moretags) = "yaml:\"timeout_timestamp\"" ];
+  uint64 timeout_timestamp = 8;
   // optional memo
   string memo = 9;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.
-message MsgTransferResponse {}
+message MsgTransferResponse {
+  // sequence number of the transfer packet sent
+  uint64 sequence = 1;
+}
