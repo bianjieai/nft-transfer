@@ -12,7 +12,7 @@ var govAcc = authtypes.NewEmptyModuleAccount(govtypes.ModuleName, authtypes.Mint
 func (suite *KeeperTestSuite) TestMsgUpdateParams() {
 	// default params
 	params := types.DefaultParams()
-	nftTransferKeeper := suite.chainA.GetSimApp().NFTTransferKeeper
+	nftTransferKeeper := suite.GetSimApp(suite.chainA).NFTTransferKeeper
 
 	testCases := []struct {
 		name      string

@@ -37,7 +37,7 @@ func NewKeeper(
 	cdc codec.Codec,
 	key storetypes.StoreKey,
 	authority string,
-	ics4Wrapper types.ICS4Wrapper,
+	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
