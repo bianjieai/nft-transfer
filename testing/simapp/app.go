@@ -430,7 +430,7 @@ func NewSimApp(
 	)
 
 	app.NFTTransferKeeper = ibcnfttransferkeeper.NewKeeper(
-		appCodec, keys[ibcnfttransfertypes.StoreKey], app.GetSubspace(ibcnfttransfertypes.ModuleName),
+		appCodec, keys[ibcnfttransfertypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, mock.Wrap(appCodec, app.NFTKeeper), scopedNFTTransferKeeper,
 	)
@@ -876,7 +876,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-	paramsKeeper.Subspace(ibcnfttransfertypes.ModuleName)
 
 	return paramsKeeper
 }

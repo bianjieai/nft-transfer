@@ -37,6 +37,9 @@ var (
 
 	// ClassTraceKey defines the key to store the class trace info in store
 	ClassTraceKey = []byte{0x02}
+
+	// ParamsKey is the key to query all nft_transfer params
+	ParamsKey = []byte{0x03}
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.
