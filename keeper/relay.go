@@ -58,10 +58,6 @@ func (k Keeper) SendTransfer(
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
 	}
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
-	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -96,6 +92,7 @@ func (k Keeper) SendTransfer(
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packet.GetBytes())
 	if err != nil {
+		return 0, err
 	}
 
 	defer func() {
