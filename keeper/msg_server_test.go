@@ -1,13 +1,8 @@
 package keeper_test
 
 import (
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/bianjieai/nft-transfer/types"
 )
-
-var govAcc = authtypes.NewEmptyModuleAccount(govtypes.ModuleName, authtypes.Minter)
 
 func (suite *KeeperTestSuite) TestMsgUpdateParams() {
 	// default params
