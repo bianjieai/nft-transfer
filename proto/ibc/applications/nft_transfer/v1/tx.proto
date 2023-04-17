@@ -6,11 +6,17 @@ option go_package = "github.com/bianjieai/nft-transfer/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
+import "ibc/applications/nft_transfer/v1/transfer.proto";
 
 // Msg defines the ibc/nft-transfer Msg service.
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
   rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
+
+  // UpdateParams defines a governance operation for updating the nft-transfer module parameters.
+  // The authority is defined in the keeper.
+  //
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgTransfer defines a msg to transfer non fungible tokens between
@@ -49,3 +55,20 @@ message MsgTransferResponse {
   // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+//
+message MsgUpdateParams {
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority    = 1 ;
+
+  // params defines the nft-transfer parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+//
+message MsgUpdateParamsResponse {}
