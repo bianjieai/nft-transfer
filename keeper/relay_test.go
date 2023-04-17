@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			if !tc.isAwayFromOrigin {
 				ctx := path.EndpointB.Chain.GetContext()
-				err = path.EndpointB.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
+				_, err = path.EndpointB.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
 					ctx,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}
 
 			ctx := path.EndpointA.Chain.GetContext()
-			err = path.EndpointA.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
+			_, err = path.EndpointA.Chain.GetSimApp().NFTTransferKeeper.SendTransfer(
 				ctx,
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,

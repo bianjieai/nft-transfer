@@ -53,10 +53,13 @@ func (k Keeper) SendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-) error {
+) (uint64, error) {
+	if !k.GetSendEnabled(ctx) {
+		return 0, types.ErrSendDisabled
+	}
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
@@ -65,7 +68,7 @@ func (k Keeper) SendTransfer(
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			channeltypes.ErrSequenceSendNotFound,
 			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
@@ -73,7 +76,7 @@ func (k Keeper) SendTransfer(
 
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
@@ -92,11 +95,11 @@ func (k Keeper) SendTransfer(
 		memo,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
-		return err
+		return 0, err
 	}
 
 	defer func() {
@@ -117,7 +120,7 @@ func (k Keeper) SendTransfer(
 			labels,
 		)
 	}()
-	return nil
+	return sequence, nil
 }
 
 // OnRecvPacket processes a cross chain fungible token transfer. If the
@@ -127,6 +130,9 @@ func (k Keeper) SendTransfer(
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet,
 	data types.NonFungibleTokenPacketData) error {
+	if !k.GetReceiveEnabled(ctx) {
+		return types.ErrReceiveDisabled
+	}
 
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
