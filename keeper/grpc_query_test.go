@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "sendEnabled is true",
 			malleate: func() {
-				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
 					SendEnabled: true,
 				})
 			},
@@ -154,7 +154,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "receiveEnabled is true",
 			malleate: func() {
-				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
 					ReceiveEnabled: true,
 				})
 			},
@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "all are true",
 			malleate: func() {
-				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
 					SendEnabled:    true,
 					ReceiveEnabled: true,
 				})
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "all are false",
 			malleate: func() {
-				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
 					SendEnabled:    false,
 					ReceiveEnabled: false,
 				})
