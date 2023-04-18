@@ -114,3 +114,16 @@ func (k Keeper) EscrowAddress(c context.Context,
 		EscrowAddress: addr.String(),
 	}, nil
 }
+
+// Params implements the Params gRPC method
+func (k Keeper) Params(c context.Context,
+	req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryParamsResponse{
+		Params: k.GetParams(ctx),
+	}, nil
+}

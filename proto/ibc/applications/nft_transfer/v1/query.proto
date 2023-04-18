@@ -36,6 +36,11 @@ service Query {
         "/ibc/apps/nft_transfer/v1/channels/{channel_id}/ports/{port_id}/"
         "escrow_address";
   }
+
+  // Params queries all parameters of the nft-transfer module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/params";
+  }
 }
 
 // QueryClassTraceRequest is the request type for the Query/ClassDenom RPC
@@ -98,4 +103,13 @@ message QueryEscrowAddressRequest {
 message QueryEscrowAddressResponse {
   // the escrow account address
   string escrow_address = 1;
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
 }
