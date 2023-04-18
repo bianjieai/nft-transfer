@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryClassTraces(),
 		GetCmdQueryEscrowAddress(),
 		GetCmdQueryClassHash(),
+		GetCmdQueryParams(),
 	)
 
 	return queryCmd

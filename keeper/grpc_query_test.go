@@ -131,3 +131,80 @@ func (suite *KeeperTestSuite) TestQueryClassTraces() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryParams() {
+	testCases := []struct {
+		name     string
+		malleate func()
+		want     types.Params
+		wantErr  bool
+	}{
+		{
+			name: "sendEnabled is true",
+			malleate: func() {
+				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+					SendEnabled: true,
+				})
+			},
+			want: types.Params{
+				SendEnabled: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "receiveEnabled is true",
+			malleate: func() {
+				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+					ReceiveEnabled: true,
+				})
+			},
+			want: types.Params{
+				ReceiveEnabled: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "all are true",
+			malleate: func() {
+				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+					SendEnabled:    true,
+					ReceiveEnabled: true,
+				})
+			},
+			want: types.Params{
+				SendEnabled:    true,
+				ReceiveEnabled: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "all are false",
+			malleate: func() {
+				suite.chainA.GetSimApp().NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+					SendEnabled:    false,
+					ReceiveEnabled: false,
+				})
+			},
+			want: types.Params{
+				SendEnabled:    false,
+				ReceiveEnabled: false,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			tc.malleate()
+
+			res, err := suite.queryClient.Params(ctx, &types.QueryParamsRequest{})
+			if (err != nil) != tc.wantErr {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().Equal(res.Params, tc.want)
+			}
+		})
+	}
+}
