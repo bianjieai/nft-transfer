@@ -4,6 +4,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -63,13 +64,27 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // SetPort sets the portID for the nft-transfer module. Used in InitGenesis
 func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.PortKey, []byte(portID))
+	store.Set(types.KeyPort(portID), []byte(portID))
 }
 
 // GetPort returns the portID for the nft-transfer module.
-func (k Keeper) GetPort(ctx sdk.Context) string {
+func (k Keeper) GetPort(ctx sdk.Context, portID string) string {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.PortKey))
+	return string(store.Get(types.KeyPort(portID)))
+}
+
+// GetPort returns the portID for the nft-transfer module.
+func (k Keeper) GetPorts(ctx sdk.Context) (ports []string) {
+	store := ctx.KVStore(k.storeKey)
+	portStore := prefix.NewStore(store, types.PortKey)
+
+	iterator := portStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		ports = append(ports, string(iterator.Value()))
+	}
+	return ports
 }
 
 // IsBound checks if the transfer module is already bound to the desired port

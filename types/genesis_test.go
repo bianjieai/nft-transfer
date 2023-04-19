@@ -18,14 +18,14 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			"valid genesis",
 			&GenesisState{
-				PortId: "portidone",
+				PortIds: []string{"portidone"},
 			},
 			false,
 		},
 		{
 			"invalid client",
 			&GenesisState{
-				PortId: "(INVALIDPORT)",
+				PortIds: []string{"(INVALIDPORT)"},
 			},
 			true,
 		},

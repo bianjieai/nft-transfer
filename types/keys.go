@@ -57,3 +57,9 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	hash := sha256.Sum256(preImage)
 	return hash[:20]
 }
+
+// KeyPort creates and returns a new key used for port store operations
+func KeyPort(portID string) []byte {
+	bz := []byte(PortKey)
+	return append(bz, []byte(portID)...)
+}
