@@ -21,6 +21,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryEscrowAddress(),
 		GetCmdQueryClassHash(),
 		GetCmdQueryParams(),
+		GetCmdQueryPorts(),
 	)
 
 	return queryCmd

@@ -165,3 +165,30 @@ func GetCmdQueryParams() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
+// GetCmdQueryPorts defines the command to query all ports from the nft-transfer module.
+func GetCmdQueryPorts() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "ports",
+		Short:   "Query the all ports from the nft-transfer module",
+		Long:    "Query the all ports from the nft-transfer module",
+		Example: fmt.Sprintf("%s query nft-transfer ports", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Ports(cmd.Context(), &types.QueryPortsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}

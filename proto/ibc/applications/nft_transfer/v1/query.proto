@@ -41,6 +41,11 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/ibc/apps/nft_transfer/v1/params";
   }
+
+  // Ports queries all port of the nft-transfer module.
+  rpc Ports(QueryPortsRequest) returns (QueryPortsResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/ports";
+  }
 }
 
 // QueryClassTraceRequest is the request type for the Query/ClassDenom RPC
@@ -112,4 +117,21 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPortsRequest is request type for the Query/Ports RPC method.
+message QueryPortsRequest {}
+
+// QueryPortsResponse is response type for the Query/Ports RPC method.
+message QueryPortsResponse {
+  // entries holds all the port of this module.
+  repeated Entry entries = 1 [(gogoproto.nullable) = false];
+}
+
+// Entry is response type for the Query/Ports RPC method.
+message Entry {
+  // the registered port of nft-transfer module
+  string port  = 1;
+  // the port is available or not
+  bool enabled = 2;
 }
