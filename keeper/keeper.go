@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -22,11 +23,11 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+	router    *types.Router
 
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
-	nftKeeper     types.NFTKeeper
 	authKeeper    types.AccountKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
@@ -36,21 +37,21 @@ func NewKeeper(
 	cdc codec.Codec,
 	key storetypes.StoreKey,
 	authority string,
+	router *types.Router,
 	ics4Wrapper types.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
-	nftKeeper types.NFTKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		authority:     authority,
+		router:        router,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
-		nftKeeper:     nftKeeper,
 		authKeeper:    authKeeper,
 		scopedKeeper:  scopedKeeper,
 	}
@@ -119,4 +120,13 @@ func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 		acc := k.authKeeper.NewAccountWithAddress(ctx, escrowAddress)
 		k.authKeeper.SetAccount(ctx, acc)
 	}
+}
+
+// GetNFTKeeper return the keeper corresponding to the port
+func (k Keeper) GetNFTKeeper(port string) (types.NFTKeeper, error) {
+	nftKeeper, ok := k.router.GetRoute(port)
+	if !ok {
+		return nil, sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", port)
+	}
+	return nftKeeper, nil
 }

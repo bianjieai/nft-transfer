@@ -429,13 +429,22 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 
+	nfttransferRouter := ibcnfttransfertypes.NewRouter()
+	nfttransferRouter.AddRoute(ibcnfttransfertypes.NativePortID, mock.Wrap(appCodec, app.NFTKeeper))
+	nfttransferRouter.AddRoute(ibcnfttransfertypes.ERC721PortID, mock.Wrap(appCodec, app.NFTKeeper))
 	app.NFTTransferKeeper = ibcnfttransferkeeper.NewKeeper(
-		appCodec, keys[ibcnfttransfertypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, mock.Wrap(appCodec, app.NFTKeeper), scopedNFTTransferKeeper,
+		appCodec,
+		keys[ibcnfttransfertypes.StoreKey],
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		nfttransferRouter,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper, scopedNFTTransferKeeper,
 	)
 	nfttransferModule := nfttransfer.NewAppModule(app.NFTTransferKeeper)
 	nfttransferIBCModule := nfttransfer.NewIBCModule(app.NFTTransferKeeper)
+	nfttransferRouter.Seal()
 
 	// Mock Module Stack
 

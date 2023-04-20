@@ -25,7 +25,7 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   types.PortKey,
-				Value: []byte(types.PortID),
+				Value: []byte(types.NativePortID),
 			},
 			{
 				Key:   types.ClassTraceKey,
@@ -41,7 +41,7 @@ func TestDecodeStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.PortID, types.PortID)},
+		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.NativePortID, types.NativePortID)},
 		{"ClassTrace", fmt.Sprintf("ClassTrace A: %s\nClassTrace B: %s", trace.IBCClassID(), trace.IBCClassID())},
 		{"other", ""},
 	}

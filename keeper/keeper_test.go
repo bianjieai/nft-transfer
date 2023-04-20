@@ -78,8 +78,8 @@ func (suite *KeeperTestSuite) MarshalTokenMetadata() string {
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = "erc-721"
-	path.EndpointB.ChannelConfig.PortID = types.PortID
+	path.EndpointA.ChannelConfig.PortID = types.ERC721PortID
+	path.EndpointB.ChannelConfig.PortID = types.NativePortID
 	path.EndpointA.ChannelConfig.Version = types.Version
 	path.EndpointB.ChannelConfig.Version = types.Version
 

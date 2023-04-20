@@ -16,4 +16,5 @@ var (
 	ErrMarshal              = sdkerrors.Register(ModuleName, 9, "failed to marshal token data")
 	ErrSendDisabled         = sdkerrors.Register(ModuleName, 10, "non-fungible token transfers from this chain are disabled")
 	ErrReceiveDisabled      = sdkerrors.Register(ModuleName, 11, "non-fungible token transfers to this chain are disabled")
+	ErrNotRegisterRoute     = sdkerrors.Register(ModuleName, 12, "port handler is not registered")
 )
