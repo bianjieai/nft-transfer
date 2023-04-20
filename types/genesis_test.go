@@ -23,9 +23,16 @@ func TestGenesisState_Validate(t *testing.T) {
 			false,
 		},
 		{
-			"invalid client",
+			"invalid port",
 			&GenesisState{
 				PortIds: []string{"(INVALIDPORT)"},
+			},
+			true,
+		},
+		{
+			"duplicate port",
+			&GenesisState{
+				PortIds: []string{NativePortID, ERC721PortID, ERC721PortID},
 			},
 			true,
 		},

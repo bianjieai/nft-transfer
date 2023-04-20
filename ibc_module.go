@@ -43,6 +43,11 @@ func ValidateTransferChannelParams(
 	portID string,
 	channelID string,
 ) error {
+	// Must check if the chain already has the ability to handle the port
+	if !keeper.HasRoute(portID) {
+		return sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", portID)
+	}
+
 	// NOTE: for escrow address security only 2^32 channels are allowed to be created
 	// Issue: https://github.com/cosmos/cosmos-sdk/issues/7737
 	channelSequence, err := channeltypes.ParseChannelSequence(channelID)
@@ -87,11 +92,6 @@ func (im IBCModule) OnChanOpenInit(
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
 	}
 
-	// Must check if the chain already has the ability to handle the port
-	if _, err := im.keeper.GetNFTKeeper(portID); err != nil {
-		return "", err
-	}
-
 	// Claim channel capability passed back by IBC module
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
@@ -117,11 +117,6 @@ func (im IBCModule) OnChanOpenTry(
 
 	if counterpartyVersion != types.Version {
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	}
-
-	// Must check if the chain already has the ability to handle the port
-	if _, err := im.keeper.GetNFTKeeper(portID); err != nil {
-		return "", err
 	}
 
 	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos

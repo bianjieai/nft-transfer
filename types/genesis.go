@@ -1,6 +1,8 @@
 package types
 
 import (
+	fmt "fmt"
+
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
@@ -27,10 +29,16 @@ func DefaultGenesisState() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	seenPort := make(map[string]bool)
 	for _, port := range gs.PortIds {
+		if seenPort[port] {
+			return fmt.Errorf("duplicate port %s", port)
+		}
+
 		if err := host.PortIdentifierValidator(port); err != nil {
 			return err
 		}
+		seenPort[port] = true
 	}
 	return gs.Traces.Validate()
 }

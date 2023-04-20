@@ -130,3 +130,9 @@ func (k Keeper) GetNFTKeeper(port string) (types.NFTKeeper, error) {
 	}
 	return nftKeeper, nil
 }
+
+// GetNFTKeeper return the keeper corresponding to the port
+func (k Keeper) HasRoute(port string) bool {
+	_, ok := k.router.GetRoute(port)
+	return ok
+}
