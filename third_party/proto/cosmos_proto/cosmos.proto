@@ -3,7 +3,7 @@ package cosmos_proto;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/cosmos/cosmos-proto";
+option go_package = "github.com/regen-network/cosmos-proto";
 
 extend google.protobuf.MessageOptions {
     string interface_type = 93001;
@@ -13,4 +13,6 @@ extend google.protobuf.MessageOptions {
 
 extend google.protobuf.FieldOptions {
     string accepts_interface = 93001;
+
+    string scalar = 93002;
 }
