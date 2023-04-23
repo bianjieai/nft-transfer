@@ -25,8 +25,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/bianjieai/nft-transfer/testing/simapp"
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
