@@ -43,11 +43,6 @@ func ValidateTransferChannelParams(
 	portID string,
 	channelID string,
 ) error {
-	// Must check if the chain already has the ability to handle the port
-	if !keeper.HasRoute(portID) {
-		return sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", portID)
-	}
-
 	// NOTE: for escrow address security only 2^32 channels are allowed to be created
 	// Issue: https://github.com/cosmos/cosmos-sdk/issues/7737
 	channelSequence, err := channeltypes.ParseChannelSequence(channelID)
@@ -55,16 +50,31 @@ func ValidateTransferChannelParams(
 		return err
 	}
 	if channelSequence > uint64(math.MaxUint32) {
-		return sdkerrors.Wrapf(types.ErrMaxTransferChannels, "channel sequence %d is greater than max allowed nft-transfer channels %d", channelSequence, uint64(math.MaxUint32))
+		return sdkerrors.Wrapf(
+			types.ErrMaxTransferChannels,
+			"channel sequence %d is greater than max allowed nft-transfer channels %d",
+			channelSequence,
+			uint64(math.MaxUint32),
+		)
 	}
 	if order != channeltypes.UNORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s ", channeltypes.UNORDERED, order)
+		return sdkerrors.Wrapf(
+			channeltypes.ErrInvalidChannelOrdering,
+			"expected %s channel, got %s ",
+			channeltypes.UNORDERED,
+			order,
+		)
 	}
 
 	// Require portID is the portID transfer module is bound to
 	boundPort := keeper.GetPort(ctx, portID)
 	if boundPort != portID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
+		return sdkerrors.Wrapf(
+			porttypes.ErrInvalidPort,
+			"invalid port: %s, expected %s",
+			portID,
+			boundPort,
+		)
 	}
 	return nil
 }
@@ -89,7 +99,12 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if version != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
+		return "", sdkerrors.Wrapf(
+			types.ErrInvalidVersion,
+			"got %s, expected %s",
+			version,
+			types.Version,
+		)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -116,14 +131,23 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if counterpartyVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
+		return "", sdkerrors.Wrapf(
+			types.ErrInvalidVersion,
+			"invalid counterparty version: got: %s, expected %s",
+			counterpartyVersion,
+			types.Version,
+		)
 	}
 
 	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
 	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
 	// If module can already authenticate the capability then module already owns it so we don't need to claim
 	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+	if !im.keeper.AuthenticateCapability(
+		ctx,
+		chanCap,
+		host.ChannelCapabilityPath(portID, channelID),
+	) {
 		// Only claim channel capability passed back by IBC module if we do not already own it
 		if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
@@ -142,7 +166,12 @@ func (im IBCModule) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if counterpartyVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+		return sdkerrors.Wrapf(
+			types.ErrInvalidVersion,
+			"invalid counterparty version: %s, expected %s",
+			counterpartyVersion,
+			types.Version,
+		)
 	}
 	im.keeper.SetEscrowAddress(ctx, portID, channelID)
 	return nil
@@ -193,7 +222,10 @@ func (im IBCModule) OnRecvPacket(
 
 	if err = types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(
-			sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-721 nft-transfer packet data"),
+			sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidType,
+				"cannot unmarshal ICS-721 nft-transfer packet data",
+			),
 		)
 	}
 
@@ -272,7 +304,11 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet data: %s", err.Error())
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal ICS-721 transfer packet data: %s",
+			err.Error(),
+		)
 	}
 	// refund tokens
 	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {

@@ -22,8 +22,9 @@ type Keeper struct {
 	cdc      codec.Codec
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
-	authority string
-	router    *types.Router
+	authority        string
+	router           *types.Router
+	defaultNFTKeeper types.NFTKeeper
 
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -37,7 +38,7 @@ func NewKeeper(
 	cdc codec.Codec,
 	key storetypes.StoreKey,
 	authority string,
-	router *types.Router,
+	defaultNFTKeeper types.NFTKeeper,
 	ics4Wrapper types.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
@@ -45,21 +46,28 @@ func NewKeeper(
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		authority:     authority,
-		router:        router,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
-		scopedKeeper:  scopedKeeper,
+		storeKey:         key,
+		cdc:              cdc,
+		router:           types.NewRouter(),
+		authority:        authority,
+		defaultNFTKeeper: defaultNFTKeeper,
+		ics4Wrapper:      ics4Wrapper,
+		channelKeeper:    channelKeeper,
+		portKeeper:       portKeeper,
+		authKeeper:       authKeeper,
+		scopedKeeper:     scopedKeeper,
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
+}
+
+// WithRouter set the router and return the Keeper
+func (k Keeper) WithRouter(router *types.Router) Keeper {
+	k.router = router
+	return k
 }
 
 // SetPort sets the portID for the nft-transfer module. Used in InitGenesis
@@ -102,13 +110,21 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 }
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
+func (k Keeper) AuthenticateCapability(
+	ctx sdk.Context,
+	cap *capabilitytypes.Capability,
+	name string,
+) bool {
 	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
 }
 
 // ClaimCapability allows the nft-transfer module that can claim a capability that IBC module
 // passes to it
-func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+func (k Keeper) ClaimCapability(
+	ctx sdk.Context,
+	cap *capabilitytypes.Capability,
+	name string,
+) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
@@ -125,10 +141,14 @@ func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 // GetNFTKeeper return the keeper corresponding to the port
 func (k Keeper) GetNFTKeeper(port string) (types.NFTKeeper, error) {
 	nftKeeper, ok := k.router.GetRoute(port)
-	if !ok {
-		return nil, sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", port)
+	if ok {
+		return nftKeeper, nil
+
 	}
-	return nftKeeper, nil
+	if k.defaultNFTKeeper != nil {
+		return k.defaultNFTKeeper, nil
+	}
+	return nil, sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", port)
 }
 
 // GetNFTKeeper return the keeper corresponding to the port
