@@ -25,7 +25,7 @@ service Query {
   // ClassHash queries a class hash information.
   rpc ClassHash(QueryClassHashRequest) returns (QueryClassHashResponse) {
     option (google.api.http).get =
-        "/ibc/apps/nft_transfer/v1/class_hashes/{trace}";
+        "/ibc/apps/nft_transfer/v1/class_hashes/{trace=**}";
   }
 
   // EscrowAddress returns the escrow address for a particular port and channel

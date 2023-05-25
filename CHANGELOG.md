@@ -48,8 +48,23 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* [\#12](https://github.com/bianjieai/nft-transfer/pull/12) check the nft owner.
-* [\#16](https://github.com/bianjieai/nft-transfer/pull/16) refactor: return the sequence of packet in `MsgTransferResponse`.
+## [v1.1.2-beta]
+
+### API Breaking
+
+* [\#16](https://github.com/bianjieai/nft-transfer/pull/16) return the sequence of packet in `MsgTransferResponse`.
+
+### Improvements
+
+* [\#11](https://github.com/bianjieai/nft-transfer/pull/11) adjust the verification order of nft.
+
+### Features
+
+* [\#13](https://github.com/bianjieai/nft-transfer/pull/13) add params to control whether the module is enabled
+
+### Bug Fixes
+
+* [\#12](https://github.com/bianjieai/nft-transfer/pull/12) fix `critical vulnerability allows attacker to take control of any NFT`.
 
 ## [v1.1.1-beta]
 
