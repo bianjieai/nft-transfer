@@ -146,7 +146,6 @@ func GetCmdQueryParams() *cobra.Command {
 		Short:   "Query the params from the nft-transfer module",
 		Long:    "Query the params from the nft-transfer module",
 		Example: fmt.Sprintf("%s query nft-transfer params", version.AppName),
-		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
