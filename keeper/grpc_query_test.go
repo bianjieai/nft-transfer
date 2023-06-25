@@ -43,7 +43,12 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 			func() {
 				expTrace.Path = "nft-transfer/channelToA/nft-transfer/channelToB"
 				expTrace.BaseClassId = "kitty"
-				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
+				suite.GetSimApp(
+					suite.chainA,
+				).NFTTransferKeeper.SetClassTrace(
+					suite.chainA.GetContext(),
+					expTrace,
+				)
 
 				req = &types.QueryClassTraceRequest{
 					Hash: expTrace.Hash().String(),
@@ -94,11 +99,25 @@ func (suite *KeeperTestSuite) TestQueryClassTraces() {
 			"success",
 			func() {
 				expTraces = append(expTraces, types.ClassTrace{Path: "", BaseClassId: "kitty"})
-				expTraces = append(expTraces, types.ClassTrace{Path: "transfer/channelToB", BaseClassId: "kitty"})
-				expTraces = append(expTraces, types.ClassTrace{Path: "transfer/channelToA/transfer/channelToB", BaseClassId: "kitty"})
+				expTraces = append(
+					expTraces,
+					types.ClassTrace{Path: "transfer/channelToB", BaseClassId: "kitty"},
+				)
+				expTraces = append(
+					expTraces,
+					types.ClassTrace{
+						Path:        "transfer/channelToA/transfer/channelToB",
+						BaseClassId: "kitty",
+					},
+				)
 
 				for _, trace := range expTraces {
-					suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
+					suite.GetSimApp(
+						suite.chainA,
+					).NFTTransferKeeper.SetClassTrace(
+						suite.chainA.GetContext(),
+						trace,
+					)
 				}
 
 				req = &types.QueryClassTracesRequest{
@@ -142,9 +161,15 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "sendEnabled is true",
 			malleate: func() {
-				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
-					SendEnabled: true,
-				})
+				err := suite.GetSimApp(
+					suite.chainA,
+				).NFTTransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					types.Params{
+						SendEnabled: true,
+					},
+				)
+				suite.Require().NoError(err)
 			},
 			want: types.Params{
 				SendEnabled: true,
@@ -154,9 +179,15 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "receiveEnabled is true",
 			malleate: func() {
-				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
-					ReceiveEnabled: true,
-				})
+				err := suite.GetSimApp(
+					suite.chainA,
+				).NFTTransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					types.Params{
+						ReceiveEnabled: true,
+					},
+				)
+				suite.Require().NoError(err)
 			},
 			want: types.Params{
 				ReceiveEnabled: true,
@@ -166,10 +197,16 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "all are true",
 			malleate: func() {
-				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
-					SendEnabled:    true,
-					ReceiveEnabled: true,
-				})
+				err := suite.GetSimApp(
+					suite.chainA,
+				).NFTTransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					types.Params{
+						SendEnabled:    true,
+						ReceiveEnabled: true,
+					},
+				)
+				suite.Require().NoError(err)
 			},
 			want: types.Params{
 				SendEnabled:    true,
@@ -180,10 +217,16 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			name: "all are false",
 			malleate: func() {
-				suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
-					SendEnabled:    false,
-					ReceiveEnabled: false,
-				})
+				err := suite.GetSimApp(
+					suite.chainA,
+				).NFTTransferKeeper.SetParams(
+					suite.chainA.GetContext(),
+					types.Params{
+						SendEnabled:    false,
+						ReceiveEnabled: false,
+					},
+				)
+				suite.Require().NoError(err)
 			},
 			want: types.Params{
 				SendEnabled:    false,
