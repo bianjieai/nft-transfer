@@ -9,7 +9,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -22,7 +23,7 @@ type Keeper struct {
 	// should be the x/gov module account.
 	authority string
 
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	nftKeeper     types.NFTKeeper
@@ -35,7 +36,7 @@ func NewKeeper(
 	cdc codec.Codec,
 	key storetypes.StoreKey,
 	authority string,
-	ics4Wrapper types.ICS4Wrapper,
+	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
