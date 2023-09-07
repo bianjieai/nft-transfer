@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -61,10 +60,7 @@ func (k Keeper) SendTransfer(
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
-
-	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 

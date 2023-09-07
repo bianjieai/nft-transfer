@@ -25,7 +25,6 @@ type Keeper struct {
 	authority string
 
 	ics4Wrapper   porttypes.ICS4Wrapper
-	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	nftKeeper     types.NFTKeeper
@@ -38,7 +37,6 @@ func NewKeeper(
 	cdc codec.Codec,
 	key storetypes.StoreKey,
 	authority string,
-	ics4Wrapper porttypes.ICS4Wrapper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
