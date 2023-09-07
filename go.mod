@@ -4,7 +4,7 @@ module github.com/bianjieai/nft-transfer
 
 require (
 	github.com/cosmos/cosmos-sdk v0.47.4
-	github.com/cosmos/ibc-go/v7 v7.3.0-rc0
+	github.com/cosmos/ibc-go/v7 v7.3.0
 )
 
 require (
