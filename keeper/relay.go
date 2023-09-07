@@ -9,10 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -347,7 +347,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		//FIX https://github.com/game-of-nfts/gon-evidence/issues/346
 		owner := k.nftKeeper.GetOwner(ctx, voucherClassID, tokenID)
 		if !escrowAddress.Equals(owner) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
 		if err := k.nftKeeper.Transfer(ctx,
