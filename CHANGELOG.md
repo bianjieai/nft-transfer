@@ -48,6 +48,27 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+## [v1.1.2]
+
+### API Breaking
+
+* [\#16](https://github.com/bianjieai/nft-transfer/pull/16) return the sequence of packet in `MsgTransferResponse`.
+
+### Improvements
+
+* [\#11](https://github.com/bianjieai/nft-transfer/pull/11) adjust the verification order of nft.
+
+### Features
+
+* [\#13](https://github.com/bianjieai/nft-transfer/pull/13) add params to control whether the module is enabled
+* [\#18](https://github.com/bianjieai/nft-transfer/pull/13) add params query api
+
+### Bug Fixes
+
+* [\#12](https://github.com/bianjieai/nft-transfer/pull/12) fix `critical vulnerability allows attacker to take control of any NFT`.
+* [\#19](https://github.com/bianjieai/nft-transfer/pull/19) fix `delete redundant parameters of the params command`.
+* [\#27](https://github.com/bianjieai/nft-transfer/pull/27) fix `allow value with slashes in URL template`.
+
 ## [v1.1.2-beta]
 
 ### API Breaking
