@@ -135,7 +135,6 @@ func (m *MsgTransferResponse) GetSequence() uint64 {
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
-//
 type MsgUpdateParams struct {
 	// authority is the address that controls the module (defaults to x/gov unless overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
@@ -194,7 +193,6 @@ func (m *MsgUpdateParams) GetParams() Params {
 
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
-//
 type MsgUpdateParamsResponse struct {
 }
 
