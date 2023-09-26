@@ -1,17 +1,19 @@
 package keeper
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
+	errorsmod "cosmossdk.io/errors"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -26,7 +28,7 @@ type Keeper struct {
 	router           *types.Router
 	defaultNFTKeeper types.NFTKeeper
 
-	ics4Wrapper   types.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	authKeeper    types.AccountKeeper
@@ -39,7 +41,7 @@ func NewKeeper(
 	key storetypes.StoreKey,
 	authority string,
 	defaultNFTKeeper types.NFTKeeper,
-	ics4Wrapper types.ICS4Wrapper,
+	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
@@ -61,7 +63,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
 // WithRouter set the router and return the Keeper
@@ -148,7 +150,7 @@ func (k Keeper) GetNFTKeeper(port string) (types.NFTKeeper, error) {
 	if k.defaultNFTKeeper != nil {
 		return k.defaultNFTKeeper, nil
 	}
-	return nil, sdkerrors.Wrapf(types.ErrNotRegisterRoute, "port: %s", port)
+	return nil, errorsmod.Wrapf(types.ErrNotRegisterRoute, "port: %s", port)
 }
 
 // GetNFTKeeper return the keeper corresponding to the port

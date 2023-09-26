@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	errorsmod "cosmossdk.io/errors"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -56,12 +56,12 @@ func (k Keeper) ClassPathFromHash(ctx sdk.Context, classID string) (string, erro
 
 	hash, err := types.ParseHexHash(hexHash)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidClassID, err.Error())
+		return "", errorsmod.Wrap(types.ErrInvalidClassID, err.Error())
 	}
 
 	classTrace, found := k.GetClassTrace(ctx, hash)
 	if !found {
-		return "", sdkerrors.Wrap(types.ErrTraceNotFound, hexHash)
+		return "", errorsmod.Wrap(types.ErrTraceNotFound, hexHash)
 	}
 	return classTrace.GetFullClassPath(), nil
 }

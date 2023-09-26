@@ -3,15 +3,16 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -57,26 +58,18 @@ func (k Keeper) SendTransfer(
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
 	}
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
-	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
-
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, sdkerrors.Wrapf(
-			channeltypes.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", sourcePort, sourceChannel,
-		)
-	}
+	destinationPort := channel.GetCounterparty().GetPortID()
+	destinationChannel := channel.GetCounterparty().GetChannelID()
 
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
@@ -89,7 +82,6 @@ func (k Keeper) SendTransfer(
 		tokenIDs,
 		sender,
 		receiver,
-		sequence,
 		timeoutHeight,
 		timeoutTimestamp,
 		memo,
@@ -98,7 +90,8 @@ func (k Keeper) SendTransfer(
 		return 0, err
 	}
 
-	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packet.GetBytes())
+	if err != nil {
 		return 0, err
 	}
 
@@ -217,19 +210,18 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	tokenIDs []string,
 	sender sdk.AccAddress,
 	receiver string,
-	sequence uint64,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-) (channeltypes.Packet, error) {
+) (types.NonFungibleTokenPacketData, error) {
 	nftKeeper, err := k.GetNFTKeeper(sourcePort)
 	if err != nil {
-		return channeltypes.Packet{}, err
+		return types.NonFungibleTokenPacketData{}, err
 	}
 
 	class, exist := nftKeeper.GetClass(ctx, classID)
 	if !exist {
-		return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidClassID, "classId not exist")
+		return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidClassID, "classId not exist")
 	}
 
 	var (
@@ -244,7 +236,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	if strings.HasPrefix(classID, "ibc/") {
 		fullClassPath, err = k.ClassPathFromHash(ctx, classID)
 		if err != nil {
-			return channeltypes.Packet{}, err
+			return types.NonFungibleTokenPacketData{}, err
 		}
 	}
 
@@ -253,12 +245,12 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	for _, tokenID := range tokenIDs {
 		nft, exist := nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
-			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
 		}
 
 		owner := nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
-			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
 		tokenURIs = append(tokenURIs, nft.GetURI())
@@ -268,11 +260,11 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 			// create the escrow address for the tokens
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 			if err := nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
-				return channeltypes.Packet{}, err
+				return types.NonFungibleTokenPacketData{}, err
 			}
 		} else {
 			if err := nftKeeper.Burn(ctx, classID, tokenID); err != nil {
-				return channeltypes.Packet{}, err
+				return types.NonFungibleTokenPacketData{}, err
 			}
 		}
 	}
@@ -291,19 +283,9 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 
 	// check packet
 	if err := packetData.ValidateBasic(); err != nil {
-		return channeltypes.Packet{}, err
+		return types.NonFungibleTokenPacketData{}, err
 	}
-
-	return channeltypes.NewPacket(
-		packetData.GetBytes(),
-		sequence,
-		sourcePort,
-		sourceChannel,
-		destinationPort,
-		destinationChannel,
-		timeoutHeight,
-		timeoutTimestamp,
-	), nil
+	return packetData, nil
 }
 
 // processReceivedPacket will mint the tokens to receiver account
@@ -379,7 +361,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 		//FIX https://github.com/game-of-nfts/gon-evidence/issues/346
 		owner := nftKeeper.GetOwner(ctx, voucherClassID, tokenID)
 		if !escrowAddress.Equals(owner) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
 		if err := nftKeeper.Transfer(ctx,

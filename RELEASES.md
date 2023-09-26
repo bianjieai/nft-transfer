@@ -11,7 +11,7 @@ This is visually explained in the following decision tree:
   <img src="https://raw.githubusercontent.com/cosmos/ibc-go/main/releases-decision-tree.png" alt="Releases decision tree" width="40%" />
 </p>
 
-When bumping the dependencies of [IBC-Go](https://github.com/cosmos/ibc-go)、 [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [Tendermint](https://github.com/tendermint/tendermint) we will only treat patch releases as non state-machine breaking.
+When bumping the dependencies of [IBC-Go](https://github.com/cosmos/ibc-go)、 [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [Tendermint](https://github.com/cometbft/cometbft) we will only treat patch releases as non state-machine breaking.
 
 ## <a name="backwards"></a> Backwards compatibility
 
@@ -91,12 +91,14 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
-## Version matrix
+## Version rules
 
-Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently active releases:
+Version rules are used to determine the version of a module.
 
-| Go   | nft-transfer | ibc-go | Cosmos SDK | Tendermint |
-| ---- | ------------ | ------ | ---------- | ---------- |
-| 1.18 | v1.1.1-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
-| 1.18 | v1.1.0-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
-| 1.18 | v1.0.0-beta  | v5.0.1 | v0.46.3    | v0.34.22   |
+The rules defined by the version are: **v{nft-transfer-version}-ibc-{ibc-version}**
+
+example:
+
+| nft-transfer      | ibc-go |
+|-------------------| ------ |
+| v1.1.2-ibc-v5.0.1 | v5.0.1 |

@@ -32,10 +32,10 @@ func (suite *KeeperTestSuite) TestGenesis() {
 			Path:        path,
 		}
 		traces = append(types.Traces{classTrace}, traces...)
-		suite.chainA.GetSimApp().NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), classTrace)
+		suite.GetSimApp(suite.chainA).NFTTransferKeeper.SetClassTrace(suite.chainA.GetContext(), classTrace)
 	}
 
-	genesis := suite.chainA.GetSimApp().NFTTransferKeeper.ExportGenesis(suite.chainA.GetContext())
+	genesis := suite.GetSimApp(suite.chainA).NFTTransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
 	//clone DefaultPorts
 	var expPorts []string
@@ -46,6 +46,6 @@ func (suite *KeeperTestSuite) TestGenesis() {
 	suite.Require().Equal(traces.Sort(), genesis.Traces)
 
 	suite.Require().NotPanics(func() {
-		suite.chainA.GetSimApp().NFTTransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
+		suite.GetSimApp(suite.chainA).NFTTransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
 }

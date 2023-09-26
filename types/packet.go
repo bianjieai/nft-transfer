@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -47,33 +48,33 @@ func NewNonFungibleTokenPacketData(
 // formats defined by their corresponding chains that are not known to IBC.
 func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(nftpd.ClassId) == "" {
-		return sdkerrors.Wrap(ErrInvalidClassID, "classId cannot be blank")
+		return errorsmod.Wrap(ErrInvalidClassID, "classId cannot be blank")
 	}
 
 	if len(nftpd.TokenIds) == 0 {
-		return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be empty")
+		return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be empty")
 	}
 
 	for _, id := range nftpd.TokenIds {
 		if strings.TrimSpace(id) == "" {
-			return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+			return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 		}
 	}
 
 	if (len(nftpd.TokenUris) != 0) && len(nftpd.TokenIds) != len(nftpd.TokenUris) {
-		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenUri must be 0 or the same as the length of TokenIds")
+		return errorsmod.Wrap(ErrInvalidPacket, "the length of tokenUri must be 0 or the same as the length of TokenIds")
 	}
 
 	if (len(nftpd.TokenData) != 0) && (len(nftpd.TokenIds) != len(nftpd.TokenData)) {
-		return sdkerrors.Wrap(ErrInvalidPacket, "the length of tokenData must be 0 or the same as the length of TokenIds")
+		return errorsmod.Wrap(ErrInvalidPacket, "the length of tokenData must be 0 or the same as the length of TokenIds")
 	}
 
 	if strings.TrimSpace(nftpd.Sender) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
 	}
 
 	if strings.TrimSpace(nftpd.Receiver) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
 	return nil
 }
@@ -118,10 +119,5 @@ func requireShape(contents []string) bool {
 			emptyStringCount++
 		}
 	}
-	// slice of string with only empty string.
-	if emptyStringCount == len(contents) {
-		return true
-	}
-
-	return false
+	return emptyStringCount == len(contents)
 }

@@ -3,11 +3,12 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 // msg types
@@ -52,33 +53,33 @@ func (MsgTransfer) Type() string {
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-		return sdkerrors.Wrap(err, "invalid source port ID")
+		return errorsmod.Wrap(err, "invalid source port ID")
 	}
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return sdkerrors.Wrap(err, "invalid source channel ID")
+		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 
 	if strings.TrimSpace(msg.ClassId) == "" {
-		return sdkerrors.Wrap(ErrInvalidClassID, "classId cannot be blank")
+		return errorsmod.Wrap(ErrInvalidClassID, "classId cannot be blank")
 	}
 
 	if len(msg.TokenIds) == 0 {
-		return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+		return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 	}
 
 	for _, tokenID := range msg.TokenIds {
 		if strings.TrimSpace(tokenID) == "" {
-			return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+			return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 		}
 	}
 
 	// NOTE: sender format must be validated as it is required by the GetSigners function.
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
 	}
 	return nil
 }

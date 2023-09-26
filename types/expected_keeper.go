@@ -5,8 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 // Class defines the interface specifications of collection that can be transferred across chains
@@ -35,11 +34,6 @@ type NFTKeeper interface {
 	HasClass(ctx sdk.Context, classID string) bool
 	GetClass(ctx sdk.Context, classID string) (Class, bool)
 	GetNFT(ctx sdk.Context, classID, tokenID string) (NFT, bool)
-}
-
-// ICS4Wrapper defines the expected ICS4Wrapper for middleware
-type ICS4Wrapper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 }
 
 // ChannelKeeper defines the expected IBC channel keeper

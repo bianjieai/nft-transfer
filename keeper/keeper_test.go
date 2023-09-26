@@ -9,15 +9,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	ibctesting "github.com/bianjieai/nft-transfer/testing"
+	ics721testing "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/testing/mock"
+	"github.com/bianjieai/nft-transfer/testing/simapp"
 	"github.com/bianjieai/nft-transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *ics721testing.Coordinator
 
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
@@ -31,13 +33,13 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ics721testing.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().NFTTransferKeeper)
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.GetSimApp(suite.chainA).InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.GetSimApp(suite.chainA).NFTTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
 	classData := &mock.ClassMetadata{
@@ -74,6 +76,11 @@ func (suite *KeeperTestSuite) MarshalTokenMetadata() string {
 	bz, err := codec.MarshalJSON(suite.tokenMetadata)
 	suite.Require().NoError(err, "MarshalTokenMetadata error")
 	return base64.RawStdEncoding.EncodeToString(bz)
+}
+
+func (suite *KeeperTestSuite) GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app := chain.App.(*simapp.SimApp)
+	return app
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
