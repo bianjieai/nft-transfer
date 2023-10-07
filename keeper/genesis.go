@@ -29,7 +29,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		}
 	}
 
-	k.SetParams(ctx, state.Params)
+	if err := k.SetParams(ctx, state.Params);err != nil {
+		panic(fmt.Sprintf("SetParams failed: %v", err))
+	}
 }
 
 // ExportGenesis exports ibc nft-transfer  module's portID and class trace info into its genesis state.
