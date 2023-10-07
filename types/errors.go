@@ -16,4 +16,5 @@ var (
 	ErrMarshal              = errorsmod.Register(ModuleName, 9, "failed to marshal token data")
 	ErrSendDisabled         = errorsmod.Register(ModuleName, 10, "non-fungible token transfers from this chain are disabled")
 	ErrReceiveDisabled      = errorsmod.Register(ModuleName, 11, "non-fungible token transfers to this chain are disabled")
+	ErrNotRegisterRoute     = errorsmod.Register(ModuleName, 12, "port handler is not registered")
 )

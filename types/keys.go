@@ -15,9 +15,6 @@ const (
 	// module supports
 	Version = "ics721-1"
 
-	// PortID is the default port id that nft-transfer module binds to
-	PortID = "nft-transfer"
-
 	// StoreKey is the store key string for IBC nft-transfer
 	StoreKey = ModuleName
 
@@ -56,4 +53,10 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
 	return hash[:20]
+}
+
+// KeyPort creates and returns a new key used for port store operations
+func KeyPort(portID string) []byte {
+	bz := []byte(PortKey)
+	return append(bz, []byte(portID)...)
 }

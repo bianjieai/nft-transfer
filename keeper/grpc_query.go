@@ -127,3 +127,25 @@ func (k Keeper) Params(c context.Context,
 		Params: k.GetParams(ctx),
 	}, nil
 }
+
+// Params implements the Params gRPC method
+func (k Keeper) Ports(c context.Context,
+	req *types.QueryPortsRequest) (*types.QueryPortsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	var entries []types.Entry
+
+	ports := k.GetPorts(ctx)
+	for _, port := range ports {
+		entries = append(entries, types.Entry{
+			Port:    port,
+			Enabled: k.HasRoute(port),
+		})
+	}
+	return &types.QueryPortsResponse{
+		Entries: entries,
+	}, nil
+}

@@ -62,8 +62,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.coordinator.CreateChannels(path)
 				trace := types.ParseClassTrace(
 					types.GetClassPrefix(
-						path.EndpointA.ChannelConfig.PortID,
-						path.EndpointA.ChannelID,
+						path.EndpointB.ChannelConfig.PortID,
+						path.EndpointB.ChannelID,
 					) + baseClassID)
 				suite.GetSimApp(path.EndpointB.Chain).NFTTransferKeeper.SetClassTrace(path.EndpointB.Chain.GetContext(), trace)
 
@@ -261,8 +261,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 			if tc.isAwayFromOrigin {
 				prefixedClassID := types.GetClassPrefix(
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
 				) + baseClassID
 				trace = types.ParseClassTrace(prefixedClassID)
 

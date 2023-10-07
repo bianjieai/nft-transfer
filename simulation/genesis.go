@@ -29,8 +29,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	transferGenesis := types.GenesisState{
-		PortId: portID,
-		Traces: types.Traces{},
+		PortIds: []string{portID},
+		Traces:  types.Traces{},
 	}
 
 	bz, err := json.MarshalIndent(&transferGenesis, "", " ")

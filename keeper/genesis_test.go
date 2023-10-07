@@ -2,9 +2,16 @@ package keeper_test
 
 import (
 	"fmt"
+	"sort"
+	"testing"
 
 	"github.com/bianjieai/nft-transfer/types"
+	"github.com/stretchr/testify/suite"
 )
+
+func TestKeeperTestSuite3(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
+}
 
 func (suite *KeeperTestSuite) TestGenesis() {
 	var (
@@ -30,7 +37,12 @@ func (suite *KeeperTestSuite) TestGenesis() {
 
 	genesis := suite.GetSimApp(suite.chainA).NFTTransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
-	suite.Require().Equal(types.PortID, genesis.PortId)
+	//clone DefaultPorts
+	var expPorts []string
+	expPorts = append(expPorts, types.DefaultPorts...)
+
+	sort.Strings(expPorts)
+	suite.Require().EqualValues(expPorts, genesis.PortIds)
 	suite.Require().Equal(traces.Sort(), genesis.Traces)
 
 	suite.Require().NotPanics(func() {
