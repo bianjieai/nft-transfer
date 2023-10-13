@@ -1,7 +1,6 @@
 package nfttransfer
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -237,7 +236,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyClassID, data.ClassId),
 			sdk.NewAttribute(types.AttributeKeyTokenIDs, strings.Join(data.TokenIds, ",")),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
 

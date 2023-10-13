@@ -139,7 +139,7 @@ func validateTraceIdentifiers(identifiers []string) error {
 			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
 		}
 		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
-			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
+			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i+1)
 		}
 	}
 	return nil
