@@ -27,7 +27,7 @@ func (k Keeper) ClassTrace(c context.Context,
 
 	hash, err := types.ParseHexHash(strings.TrimPrefix(req.Hash, "ibc/"))
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid class trace hash: %s, error: %s", hash.String(), err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid class trace hash: %s, error: %s", req.Hash, err))
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)

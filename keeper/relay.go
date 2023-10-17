@@ -76,14 +76,10 @@ func (k Keeper) SendTransfer(
 	packet, err := k.createOutgoingPacket(ctx,
 		sourcePort,
 		sourceChannel,
-		destinationPort,
-		destinationChannel,
 		classID,
 		tokenIDs,
 		sender,
 		receiver,
-		timeoutHeight,
-		timeoutTimestamp,
 		memo,
 	)
 	if err != nil {
@@ -170,8 +166,8 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	classTrace := types.ParseClassTrace(data.ClassId)
 	voucherClassID := classTrace.IBCClassID()
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
-		for _, tokenID := range data.TokenIds {
-			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
+		for i, tokenID := range data.TokenIds {
+			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), sender); err != nil {
 				return err
 			}
 		}
@@ -199,14 +195,10 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	sourcePort,
 	sourceChannel,
-	destinationPort,
-	destinationChannel,
 	classID string,
 	tokenIDs []string,
 	sender sdk.AccAddress,
 	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
 	memo string,
 ) (types.NonFungibleTokenPacketData, error) {
 	class, exist := k.nftKeeper.GetClass(ctx, classID)
@@ -218,8 +210,8 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		// NOTE: class and hex hash correctness checked during msg.ValidateBasic
 		fullClassPath = classID
 		err           error
-		tokenURIs     []string
-		tokenData     []string
+		tokenURIs     = make([]string, len(tokenIDs))
+		tokenData     = make([]string, len(tokenIDs))
 	)
 
 	// deconstruct the token denomination into the denomination trace info
@@ -233,7 +225,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 
 	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
-	for _, tokenID := range tokenIDs {
+	for i, tokenID := range tokenIDs {
 		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
 			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
@@ -244,13 +236,13 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 			return types.NonFungibleTokenPacketData{}, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
-		tokenURIs = append(tokenURIs, nft.GetURI())
-		tokenData = append(tokenData, nft.GetData())
+		tokenURIs[i] = nft.GetURI()
+		tokenData[i] = nft.GetData()
 
 		if isAwayFromOrigin {
 			// create the escrow address for the tokens
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
+			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, nft.GetData(), escrowAddress); err != nil {
 				return types.NonFungibleTokenPacketData{}, err
 			}
 		} else {
@@ -271,12 +263,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		tokenData,
 		memo,
 	)
-
-	// check packet
-	if err := packetData.ValidateBasic(); err != nil {
-		return types.NonFungibleTokenPacketData{}, err
-	}
-	return packetData, nil
+	return packetData, packetData.ValidateBasic()
 }
 
 // processReceivedPacket will mint the tokens to receiver account

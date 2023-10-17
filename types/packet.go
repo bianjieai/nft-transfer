@@ -55,10 +55,15 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be empty")
 	}
 
-	for _, id := range nftpd.TokenIds {
+	seen := make(map[string]int64)
+	for i, id := range nftpd.TokenIds {
 		if strings.TrimSpace(id) == "" {
 			return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 		}
+		if j, exist := seen[id]; exist {
+			return errorsmod.Wrapf(ErrInvalidTokenID, "the tokenId at positions %d and %d in the array are repeated", i, j)
+		}
+		seen[id] = int64(i)
 	}
 
 	if (len(nftpd.TokenUris) != 0) && len(nftpd.TokenIds) != len(nftpd.TokenUris) {
