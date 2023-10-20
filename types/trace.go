@@ -11,6 +11,7 @@ import (
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
@@ -61,6 +62,7 @@ func IsAwayFromOrigin(sourcePort, sourceChannel, fullClassPath string) bool {
 // Examples:
 //
 //   - "port-1/channel-1/class-1" => ClassTrace{Path: "port-1/channel-1", BaseClassId: "class-1"}
+//   - "port-1/channel-1/class/1" => ClassTrace{Path: "port-1/channel-1", BaseClassId: "class/1"}
 //   - "class-1" => ClassTrace{Path: "", BaseClassId: "class-1"}
 func ParseClassTrace(rawClassID string) ClassTrace {
 	classSplit := strings.Split(rawClassID, "/")
@@ -72,9 +74,10 @@ func ParseClassTrace(rawClassID string) ClassTrace {
 		}
 	}
 
+	path, baseDenom := extractPathAndBaseFromFullClassID(classSplit)
 	return ClassTrace{
-		Path:        strings.Join(classSplit[:len(classSplit)-1], "/"),
-		BaseClassId: classSplit[len(classSplit)-1],
+		Path:      path,
+		BaseClassId: baseDenom,
 	}
 }
 
@@ -178,4 +181,33 @@ func (t Traces) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 func (t Traces) Sort() Traces {
 	sort.Sort(t)
 	return t
+}
+
+// extractPathAndBaseFromFullClassID returns the trace path and the base classID from
+// the elements that constitute the complete classID.
+func extractPathAndBaseFromFullClassID(fullClassIdItems []string) (string, string) {
+	var (
+		pathSlice      []string
+		baseClassIdSlice []string
+	)
+
+	length := len(fullClassIdItems)
+	for i := 0; i < length; i += 2 {
+		// The IBC specification does not guarantee the expected format of the
+		// destination port or destination channel identifier. A short term solution
+		// to determine base classID is to expect the channel identifier to be the
+		// one ibc-go specifies. A longer term solution is to separate the path and base
+		// denomination in the ICS721 packet.
+		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullClassIdItems[i+1]) {
+			pathSlice = append(pathSlice, fullClassIdItems[i], fullClassIdItems[i+1])
+		} else {
+			baseClassIdSlice = fullClassIdItems[i:]
+			break
+		}
+	}
+
+	path := strings.Join(pathSlice, "/")
+	baseClassID := strings.Join(baseClassIdSlice, "/")
+
+	return path, baseClassID
 }

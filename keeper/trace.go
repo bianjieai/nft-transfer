@@ -73,10 +73,10 @@ func (k Keeper) HasClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) 
 }
 
 // SetClassTrace sets a new {trace hash -> class trace} pair to the store.
-func (k Keeper) SetClassTrace(ctx sdk.Context, denomTrace types.ClassTrace) {
+func (k Keeper) SetClassTrace(ctx sdk.Context, classTrace types.ClassTrace) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
-	bz := k.MustMarshalClassTrace(denomTrace)
-	store.Set(denomTrace.Hash(), bz)
+	bz := k.MustMarshalClassTrace(classTrace)
+	store.Set(classTrace.Hash(), bz)
 }
 
 // MustUnmarshalClassTrace attempts to decode and return an ClassTrace object from
