@@ -74,10 +74,10 @@ func ParseClassTrace(rawClassID string) ClassTrace {
 		}
 	}
 
-	path, baseDenom := extractPathAndBaseFromFullClassID(classSplit)
+	path, baseClassId := extractPathAndBaseFromFullClassID(classSplit)
 	return ClassTrace{
 		Path:      path,
-		BaseClassId: baseDenom,
+		BaseClassId: baseClassId,
 	}
 }
 
