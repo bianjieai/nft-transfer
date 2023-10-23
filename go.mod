@@ -4,7 +4,7 @@ module github.com/bianjieai/nft-transfer
 
 retract (
 	v1.1.2-ibc-v5.0.1 // contains huckleberry vulnerability
-	v1.1.2-ibc-v5.0.1 // contains huckleberry vulnerability
+	v1.1.2-ibc-v6.1.0 // contains huckleberry vulnerability
 )
 
 replace (
