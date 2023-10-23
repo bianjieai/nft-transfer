@@ -17,16 +17,15 @@ import (
 
 // ParseHexHash parses a hex hash in string format to bytes and validates its correctness.
 func ParseHexHash(hexHash string) (tmbytes.HexBytes, error) {
+	if strings.TrimSpace(hexHash) == "" {
+		return nil, fmt.Errorf("empty hex hash")
+	}
 	hash, err := hex.DecodeString(hexHash)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := tmtypes.ValidateHash(hash); err != nil {
-		return nil, err
-	}
-
-	return hash, nil
+	return hash, tmtypes.ValidateHash(hash)
 }
 
 // GetClassPrefix returns the receiving class prefix

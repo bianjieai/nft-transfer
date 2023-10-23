@@ -172,8 +172,8 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		return err
 	}
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
-		for _, tokenID := range data.TokenIds {
-			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, "", sender); err != nil {
+		for i, tokenID := range data.TokenIds {
+			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, types.GetIfExist(i, data.TokenData), sender); err != nil {
 				return err
 			}
 		}
@@ -252,7 +252,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		if isAwayFromOrigin {
 			// create the escrow address for the tokens
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, "", escrowAddress); err != nil {
+			if err := k.nftKeeper.Transfer(ctx, classID, tokenID, nft.GetData(), escrowAddress); err != nil {
 				return types.NonFungibleTokenPacketData{}, err
 			}
 		} else {
