@@ -28,6 +28,11 @@ func TestNonFungibleTokenPacketData_ValidateBasic(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "invalid packet with repeated tokenIds",
+			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty","kitty"}, []string{"kitty_uri","kitty_uri"}, tokenData, sender, receiver, "memo"},
+			wantErr: true,
+		},
+		{
 			name:    "valid packet with empty tokenUris",
 			packet:  NonFungibleTokenPacketData{"cryptoCat", "uri", "", []string{"kitty"}, []string{}, tokenData, sender, receiver, "memo"},
 			wantErr: false,

@@ -18,8 +18,8 @@ func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) 
 		return types.ClassTrace{}, false
 	}
 
-	denomTrace := k.MustUnmarshalClassTrace(bz)
-	return denomTrace, true
+	classTrace := k.MustUnmarshalClassTrace(bz)
+	return classTrace, true
 }
 
 // GetAllClassTraces returns the trace information for all the class.
@@ -67,16 +67,16 @@ func (k Keeper) ClassPathFromHash(ctx sdk.Context, classID string) (string, erro
 }
 
 // HasClassTrace checks if a the key with the given denomination trace hash exists on the store.
-func (k Keeper) HasClassTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool {
+func (k Keeper) HasClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
-	return store.Has(denomTraceHash)
+	return store.Has(classTraceHash)
 }
 
 // SetClassTrace sets a new {trace hash -> class trace} pair to the store.
-func (k Keeper) SetClassTrace(ctx sdk.Context, denomTrace types.ClassTrace) {
+func (k Keeper) SetClassTrace(ctx sdk.Context, classTrace types.ClassTrace) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
-	bz := k.MustMarshalClassTrace(denomTrace)
-	store.Set(denomTrace.Hash(), bz)
+	bz := k.MustMarshalClassTrace(classTrace)
+	store.Set(classTrace.Hash(), bz)
 }
 
 // MustUnmarshalClassTrace attempts to decode and return an ClassTrace object from

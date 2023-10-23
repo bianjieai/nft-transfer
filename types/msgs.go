@@ -67,10 +67,15 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 	}
 
-	for _, tokenID := range msg.TokenIds {
-		if strings.TrimSpace(tokenID) == "" {
+	seen := make(map[string]int64)
+	for i, id := range msg.TokenIds {
+		if strings.TrimSpace(id) == "" {
 			return errorsmod.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 		}
+		if j, exist := seen[id]; exist {
+			return errorsmod.Wrapf(ErrInvalidTokenID, "the tokenId at positions %d and %d in the array are repeated", i, j)
+		}
+		seen[id] = int64(i)
 	}
 
 	// NOTE: sender format must be validated as it is required by the GetSigners function.
@@ -116,6 +121,9 @@ func (msg MsgUpdateParams) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams.
 func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	authority, _ := sdk.AccAddressFromBech32(msg.Authority)
+	authority, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{authority}
 }

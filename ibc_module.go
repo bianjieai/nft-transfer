@@ -1,7 +1,6 @@
 package nfttransfer
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -185,23 +184,25 @@ func (im IBCModule) OnRecvPacket(
 	var (
 		ack  = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		data types.NonFungibleTokenPacketData
-		err  error
+		ackErr  error
 	)
 
-	if err = types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(
 			errorsmod.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ICS-721 nft-transfer packet data"),
 		)
+		ackErr = err
 	}
 
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		if err = im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
+		if err := im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
+			ackErr = err
 		}
 	}
-	keeper.EmitAcknowledgementEvent(ctx, data, ack, err)
+	keeper.EmitAcknowledgementEvent(ctx, data, ack, ackErr)
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
 }
@@ -237,7 +238,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyClassID, data.ClassId),
 			sdk.NewAttribute(types.AttributeKeyTokenIDs, strings.Join(data.TokenIds, ",")),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
 

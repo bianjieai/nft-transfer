@@ -15,12 +15,16 @@ import (
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgTransfer{}, "cosmos-sdk/MsgTransferNFT", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "cosmos-sdk/MsgUpdateParams", nil)
 }
 
 // RegisterInterfaces register the ibc nft-transfer module interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{})
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgTransfer{},
+		&MsgUpdateParams{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
