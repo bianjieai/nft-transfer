@@ -12,6 +12,7 @@ const (
 	AttributeKeyReceiver   = "receiver"
 	AttributeKeyClassID    = "classID"
 	AttributeKeyTokenIDs   = "tokenIDs"
+	AttributeKeyAck        = "acknowledgement"
 	AttributeKeyAckSuccess = "success"
 	AttributeKeyAckError   = "error"
 	AttributeKeyTraceHash  = "trace_hash"
