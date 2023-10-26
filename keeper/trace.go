@@ -35,7 +35,7 @@ func (k Keeper) GetAllClassTraces(ctx sdk.Context) types.Traces {
 
 // IterateClassTraces iterates over the class traces in the store
 // and performs a callback function.
-func (k Keeper) IterateClassTraces(ctx sdk.Context, cb func(denomTrace types.ClassTrace) bool) {
+func (k Keeper) IterateClassTraces(ctx sdk.Context, cb func(_ types.ClassTrace) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ClassTraceKey)
 
