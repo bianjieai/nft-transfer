@@ -36,23 +36,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
+## [v1.1.3]
 
 ### Improvements
 
 * [\#48](https://github.com/bianjieai/nft-transfer/pull/48) apply audit suggestion.
 * [\#17](https://github.com/bianjieai/nft-transfer/pull/17) replace param proposal with MsgUpdateParams.
 * [\#15](https://github.com/bianjieai/nft-transfer/pull/15) solve the problem of "/" parsing error in classID.
+* [\#55](https://github.com/bianjieai/nft-transfer/pull/55) rename variable name
+* [\#40](https://github.com/bianjieai/nft-transfer/pull/40) bump up IBC-Go.
 
-### Features
-
-### Bug Fixes
-
-* [\#29](https://github.com/bianjieai/nft-transfer/pull/29) bump up Cosmos-SDK and IBC-Go.
 
 ## [v1.1.2]
 
