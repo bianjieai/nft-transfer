@@ -23,8 +23,8 @@ func RadomEnabled(r *rand.Rand) bool {
 // RandomizedGenState generates a random GenesisState for nft-transfer.
 func RandomizedGenState(simState *module.SimulationState) {
 	var portID string
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, port, &portID, simState.Rand,
+	simState.AppParams.GetOrGenerate( 
+		port, &portID, simState.Rand,
 		func(r *rand.Rand) { portID = strings.ToLower(simtypes.RandStringOfLength(r, 20)) },
 	)
 

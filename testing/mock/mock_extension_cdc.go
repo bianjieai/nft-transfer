@@ -114,3 +114,12 @@ func (w MockNFTKeeper) UnmarshalTokenMetadata(data string) (*codectypes.Any, err
 
 	return codectypes.NewAnyWithValue(&Extension{Data: data})
 }
+
+func RegisterImplementations(ir codectypes.InterfaceRegistry) {
+	ir.RegisterImplementations(
+		(*proto.Message)(nil),
+		&ClassMetadata{},
+		&TokenMetadata{},
+		&Extension{},
+	)
+}
