@@ -76,7 +76,7 @@ func ParseClassTrace(rawClassID string) ClassTrace {
 
 	path, baseClassId := extractPathAndBaseFromFullClassID(classSplit)
 	return ClassTrace{
-		Path:      path,
+		Path:        path,
 		BaseClassId: baseClassId,
 	}
 }
@@ -187,7 +187,7 @@ func (t Traces) Sort() Traces {
 // the elements that constitute the complete classID.
 func extractPathAndBaseFromFullClassID(fullClassIdItems []string) (string, string) {
 	var (
-		pathSlice      []string
+		pathSlice        []string
 		baseClassIdSlice []string
 	)
 

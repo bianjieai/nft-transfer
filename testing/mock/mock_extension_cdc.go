@@ -3,8 +3,9 @@ package mock
 import (
 	"encoding/base64"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	proto "github.com/gogo/protobuf/proto"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	"github.com/bianjieai/nft-transfer/types"
 )

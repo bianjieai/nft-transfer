@@ -27,10 +27,10 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	"github.com/bianjieai/nft-transfer/testing/simapp"
 	ibctestingtypes "github.com/bianjieai/nft-transfer/testing/types"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 )
 
 var DefaultTestingAppInit = SetupTestingApp

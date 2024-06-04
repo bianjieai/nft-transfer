@@ -3,11 +3,11 @@ package ibctesting
 import (
 	"time"
 
+	"github.com/bianjieai/nft-transfer/testing/mock"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/bianjieai/nft-transfer/testing/mock"
 )
 
 type ClientConfig interface {

@@ -25,9 +25,9 @@ import (
 )
 
 var (
-	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
-	_ porttypes.IBCModule = (*IBCModule)(nil)
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ porttypes.IBCModule   = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC nft-transfer AppModuleBasic
