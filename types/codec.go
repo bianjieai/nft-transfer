@@ -3,12 +3,13 @@ package types
 import (
 	"bytes"
 
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	"github.com/cosmos/gogoproto/jsonpb"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // RegisterLegacyAminoCodec registers the necessary nft-transfer interfaces and concrete types
@@ -29,8 +30,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 var (
-	amino = codec.NewLegacyAmino()
-
 	// ModuleCdc references the global nft-transfer module codec. Note, the codec
 	// should ONLY be used in certain instances of tests and for JSON encoding.
 	//
@@ -39,14 +38,25 @@ var (
 	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	// AminoCdc is a amino codec created to support amino json compatible msgs.
-	AminoCdc = codec.NewAminoCodec(amino)
+	AminoCdc = codec.NewLegacyAmino()
 )
 
 func init() {
-	RegisterLegacyAminoCodec(amino)
-	amino.Seal()
+	RegisterLegacyAminoCodec(AminoCdc)
+	AminoCdc.Seal()
 }
 
+// MustProtoMarshalJSON marshals a protobuf message to JSON and panics if there is an error.
+//
+// It takes a protobuf message as input and returns the JSON-encoded byte array.
+// The function uses the provided anyResolver to resolve any protobuf Any types in the message.
+// If there is an error during the marshaling process, the function panics.
+//
+// Parameters:
+// - msg: The protobuf message to be marshaled.
+//
+// Returns:
+// - []byte: The JSON-encoded byte array.
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()
 	bz, err := ProtoMarshalJSON(msg, anyResolver)

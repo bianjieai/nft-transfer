@@ -3,8 +3,9 @@ package mock
 import (
 	"encoding/base64"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	proto "github.com/gogo/protobuf/proto"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -113,4 +114,13 @@ func (w MockNFTKeeper) UnmarshalTokenMetadata(data string) (*codectypes.Any, err
 	}
 
 	return codectypes.NewAnyWithValue(&Extension{Data: data})
+}
+
+func RegisterImplementations(ir codectypes.InterfaceRegistry) {
+	ir.RegisterImplementations(
+		(*proto.Message)(nil),
+		&ClassMetadata{},
+		&TokenMetadata{},
+		&Extension{},
+	)
 }

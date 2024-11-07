@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"cosmossdk.io/x/nft"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
+	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // The following test describes the entire cross-chain process of nft-transfer.
@@ -14,8 +14,7 @@ import (
 // A -> B -> C -> A -> C -> B ->A
 func (suite *KeeperTestSuite) TestSendAndReceive() {
 	pathA2B := NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(pathA2B)
-	suite.coordinator.CreateChannels(pathA2B)
+	suite.coordinator.Setup(pathA2B)
 
 	classID := "cryptoCat"
 	classURI := "cat_uri"

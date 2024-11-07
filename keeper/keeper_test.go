@@ -9,11 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	ics721testing "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/testing/simapp"
 	"github.com/bianjieai/nft-transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type KeeperTestSuite struct {
@@ -89,7 +89,6 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.PortID = types.PortID
 	path.EndpointA.ChannelConfig.Version = types.Version
 	path.EndpointB.ChannelConfig.Version = types.Version
-
 	return path
 }
 

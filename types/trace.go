@@ -11,8 +11,8 @@ import (
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // ParseHexHash parses a hex hash in string format to bytes and validates its correctness.
@@ -76,7 +76,7 @@ func ParseClassTrace(rawClassID string) ClassTrace {
 
 	path, baseClassId := extractPathAndBaseFromFullClassID(classSplit)
 	return ClassTrace{
-		Path:      path,
+		Path:        path,
 		BaseClassId: baseClassId,
 	}
 }
@@ -187,7 +187,7 @@ func (t Traces) Sort() Traces {
 // the elements that constitute the complete classID.
 func extractPathAndBaseFromFullClassID(fullClassIdItems []string) (string, string) {
 	var (
-		pathSlice      []string
+		pathSlice        []string
 		baseClassIdSlice []string
 	)
 

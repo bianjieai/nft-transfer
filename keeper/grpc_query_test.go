@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/bianjieai/nft-transfer/types"
@@ -63,8 +62,7 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.queryClient.ClassTrace(ctx, req)
+			res, err := suite.queryClient.ClassTrace(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -136,9 +134,7 @@ func (suite *KeeperTestSuite) TestQueryClassTraces() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-
-			res, err := suite.queryClient.ClassTraces(ctx, req)
+			res, err := suite.queryClient.ClassTraces(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -239,10 +235,8 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 			tc.malleate()
-
-			res, err := suite.queryClient.Params(ctx, &types.QueryParamsRequest{})
+			res, err := suite.queryClient.Params(suite.chainA.GetContext(), &types.QueryParamsRequest{})
 			if (err != nil) != tc.wantErr {
 				suite.Require().Error(err)
 			} else {
