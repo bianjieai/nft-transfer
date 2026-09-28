@@ -29,8 +29,7 @@ import (
 
 	"github.com/bianjieai/nft-transfer/testing/simapp"
 	ibctestingtypes "github.com/bianjieai/nft-transfer/testing/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
@@ -42,7 +41,6 @@ type TestingApp interface {
 	GetBaseApp() *baseapp.BaseApp
 	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
-	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
 
 	// Implemented by SimApp

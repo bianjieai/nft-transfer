@@ -10,10 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcmetrics "github.com/cosmos/ibc-go/v10/modules/core/metrics"
 
 	"github.com/bianjieai/nft-transfer/types"
 )
@@ -60,18 +60,18 @@ func (k Keeper) SendTransfer(
 		return 0, types.ErrSendDisabled
 	}
 
+	// IBC v10 routes packets by port and no longer checks channel capabilities.
+	if sourcePort != k.GetPort(ctx) {
+		return 0, errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid source port: %s, expected %s", sourcePort, k.GetPort(ctx))
+	}
+
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	destinationPort := channel.GetCounterparty().GetPortID()
-	destinationChannel := channel.GetCounterparty().GetChannelID()
-
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
+	destinationPort := channel.Counterparty.PortId
+	destinationChannel := channel.Counterparty.ChannelId
 
 	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
 	packet, err := k.createOutgoingPacket(ctx,
@@ -87,15 +87,15 @@ func (k Keeper) SendTransfer(
 		return 0, err
 	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packet.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packet.GetBytes())
 	if err != nil {
 		return 0, err
 	}
 
 	defer func() {
 		labels := []metrics.Label{
-			telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+			telemetry.NewLabel(ibcmetrics.LabelDestinationPort, destinationPort),
+			telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, destinationChannel),
 		}
 
 		telemetry.SetGaugeWithLabels(

@@ -14,6 +14,9 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
+	originalHome := simapp.DefaultNodeHome
+	simapp.DefaultNodeHome = t.TempDir()
+	t.Cleanup(func() { simapp.DefaultNodeHome = originalHome })
 	rootCmd := cmd.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"init",        // Test the init cmd

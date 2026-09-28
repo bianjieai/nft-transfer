@@ -98,7 +98,7 @@ func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
 	if requireShape(nftpd.TokenData) {
 		nftpd.TokenData = nil
 	}
-	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd))
+	return sdk.MustSortJSON(MustProtoMarshalJSON(&nftpd)) //nolint:staticcheck // Preserve the existing canonical packet encoding.
 }
 
 func GetIfExist(i int, data []string) string {

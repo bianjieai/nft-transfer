@@ -5,17 +5,15 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/nft-transfer/keeper"
 	"github.com/bianjieai/nft-transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var (
@@ -73,7 +71,6 @@ func (im IBCModule) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -89,11 +86,6 @@ func (im IBCModule) OnChanOpenInit(
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
 	}
 
-	// Claim channel capability passed back by IBC module
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
-	}
-
 	return version, nil
 }
 
@@ -104,7 +96,6 @@ func (im IBCModule) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -114,17 +105,6 @@ func (im IBCModule) OnChanOpenTry(
 
 	if counterpartyVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	}
-
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
 	}
 
 	return types.Version, nil
@@ -138,6 +118,9 @@ func (im IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
+	if portID != im.keeper.GetPort(ctx) {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s", portID)
+	}
 	if counterpartyVersion != types.Version {
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
@@ -151,6 +134,9 @@ func (im IBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	if portID != im.keeper.GetPort(ctx) {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s", portID)
+	}
 	im.keeper.SetEscrowAddress(ctx, portID, channelID)
 	return nil
 }
@@ -171,6 +157,9 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
+	if portID != im.keeper.GetPort(ctx) {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s", portID)
+	}
 	return nil
 }
 
@@ -179,9 +168,13 @@ func (im IBCModule) OnChanCloseConfirm(
 // logic returns without error.
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	if packet.DestinationPort != im.keeper.GetPort(ctx) {
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid destination port: %s", packet.DestinationPort))
+	}
 	var (
 		ack    = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		data   types.NonFungibleTokenPacketData
@@ -211,10 +204,14 @@ func (im IBCModule) OnRecvPacket(
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	if packet.SourcePort != im.keeper.GetPort(ctx) {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid source port: %s", packet.SourcePort)
+	}
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest,
@@ -266,9 +263,13 @@ func (im IBCModule) OnAcknowledgementPacket(
 // OnTimeoutPacket implements the IBCModule interface
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if packet.SourcePort != im.keeper.GetPort(ctx) {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid source port: %s", packet.SourcePort)
+	}
 	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet data: %s", err.Error())

@@ -10,7 +10,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
-	ics721testing "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/testing/mock"
 	"github.com/bianjieai/nft-transfer/testing/simapp"
 	"github.com/bianjieai/nft-transfer/types"
@@ -19,7 +18,7 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ics721testing.Coordinator
+	coordinator *ibctesting.Coordinator
 
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
@@ -33,7 +32,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ics721testing.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))

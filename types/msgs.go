@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 )
 
 // msg types
@@ -92,7 +92,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 // GetSignBytes implements sdk.Msg.
 func (msg MsgTransfer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg)) //nolint:staticcheck // Preserve legacy amino sign bytes.
 }
 
 // GetSigners implements sdk.Msg
@@ -117,7 +117,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 // GetSignBytes returns the message bytes to sign over.
 func (msg MsgUpdateParams) GetSignBytes() []byte {
 	bz := AminoCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // Preserve legacy amino sign bytes.
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams.
