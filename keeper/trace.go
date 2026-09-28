@@ -41,7 +41,7 @@ func (k Keeper) IterateClassTraces(ctx sdk.Context, cb func(_ types.ClassTrace) 
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, types.ClassTraceKey)
 
-	defer iterator.Close()
+	defer func() { _ = iterator.Close() }()
 	for ; iterator.Valid(); iterator.Next() {
 		classTrace := k.MustUnmarshalClassTrace(iterator.Value())
 		if cb(classTrace) {

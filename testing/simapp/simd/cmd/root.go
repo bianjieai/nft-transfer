@@ -239,7 +239,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
+	crisis.AddModuleInitFlags(startCmd) //nolint:staticcheck // Preserve the existing simapp CLI while x/crisis remains mounted.
 }
 
 func queryCommand() *cobra.Command {
@@ -361,7 +361,7 @@ var tempDir = func() string {
 	if err != nil {
 		dir = simapp.DefaultNodeHome
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	return dir
 }

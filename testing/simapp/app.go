@@ -130,7 +130,6 @@ import (
 
 	nfttransfer "github.com/bianjieai/nft-transfer"
 	ibcnfttransferkeeper "github.com/bianjieai/nft-transfer/keeper"
-	"github.com/bianjieai/nft-transfer/testing/mock"
 	ibcnfttransfertypes "github.com/bianjieai/nft-transfer/types"
 )
 
@@ -183,9 +182,9 @@ type SimApp struct {
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             govkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
+	CrisisKeeper          *crisiskeeper.Keeper //nolint:staticcheck // Keep x/crisis mounted in the compatibility simapp.
 	UpgradeKeeper         *upgradekeeper.Keeper
-	ParamsKeeper          paramskeeper.Keeper
+	ParamsKeeper          paramskeeper.Keeper //nolint:staticcheck // Legacy module parameter subspaces still require x/params.
 	AuthzKeeper           authzkeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
@@ -250,7 +249,7 @@ func NewSimApp(
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
-	mock.RegisterImplementations(interfaceRegistry)
+	ibcmock.RegisterImplementations(interfaceRegistry)
 
 	// Below we could construct and set an application specific mempool and
 	// ABCI 1.0 PrepareProposal and ProcessProposal handlers. These defaults are
@@ -344,7 +343,7 @@ func NewSimApp(
 	)
 
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
-	app.CrisisKeeper = crisiskeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[crisistypes.StoreKey]), invCheckPeriod,
+	app.CrisisKeeper = crisiskeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[crisistypes.StoreKey]), invCheckPeriod, //nolint:staticcheck // Keep x/crisis mounted in the compatibility simapp.
 		app.BankKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String(), app.AccountKeeper.AddressCodec())
 
 	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[feegrant.StoreKey]), app.AccountKeeper)
@@ -363,7 +362,7 @@ func NewSimApp(
 	)
 
 	app.CircuitKeeper = circuitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[circuittypes.StoreKey]), authtypes.NewModuleAddress(govtypes.ModuleName).String(), app.AccountKeeper.AddressCodec())
-	app.BaseApp.SetCircuitBreaker(&app.CircuitKeeper)
+	app.SetCircuitBreaker(&app.CircuitKeeper)
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(keys[authzkeeper.StoreKey]), appCodec, app.MsgServiceRouter(), app.AccountKeeper)
 
@@ -450,7 +449,7 @@ func NewSimApp(
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.AccountKeeper,
-		mock.Wrap(appCodec, app.NFTKeeper),
+		ibcmock.Wrap(appCodec, app.NFTKeeper),
 	)
 	nfttransferModule := nfttransfer.NewAppModule(app.NFTTransferKeeper)
 	nfttransferIBCModule := nfttransfer.NewIBCModule(app.NFTTransferKeeper)
@@ -476,8 +475,7 @@ func NewSimApp(
 
 	// Create the transfer stack.
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -495,8 +493,7 @@ func NewSimApp(
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> icaHost.OnRecvPacket
 
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
@@ -525,7 +522,7 @@ func NewSimApp(
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
-	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
+	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants)) //nolint:staticcheck // Preserve the existing simapp option while x/crisis remains mounted.
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -537,7 +534,7 @@ func NewSimApp(
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)),
+		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), //nolint:staticcheck // Keep x/crisis mounted in the compatibility simapp.
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, &app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
@@ -546,7 +543,7 @@ func NewSimApp(
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		params.NewAppModule(app.ParamsKeeper),
+		params.NewAppModule(app.ParamsKeeper), //nolint:staticcheck // Legacy module parameter subspaces still require x/params.
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
@@ -645,7 +642,6 @@ func NewSimApp(
 	// Uncomment if you want to set a custom migration order here.
 	// app.ModuleManager.SetOrderMigrations(custom order)
 
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	err := app.ModuleManager.RegisterServices(app.configurator)
 	if err != nil {
@@ -911,7 +907,7 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *SimApp) RegisterTxService(clientCtx client.Context) {
-	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+	authtx.RegisterTxService(app.GRPCQueryRouter(), clientCtx, app.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
@@ -919,7 +915,7 @@ func (app *SimApp) RegisterTendermintService(clientCtx client.Context) {
 	cmtApp := server.NewCometABCIWrapper(app)
 	cmtservice.RegisterTendermintService(
 		clientCtx,
-		app.BaseApp.GRPCQueryRouter(),
+		app.GRPCQueryRouter(),
 		app.interfaceRegistry,
 		cmtApp.Query,
 	)
@@ -956,8 +952,8 @@ func BlockedAddresses() map[string]bool {
 }
 
 // initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper { //nolint:staticcheck // Legacy module parameter subspaces still require x/params.
+	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey) //nolint:staticcheck // Legacy module parameter subspaces still require x/params.
 
 	// register the key tables for legacy param subspaces
 	keyTable := ibcclienttypes.ParamKeyTable()

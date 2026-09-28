@@ -92,7 +92,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 // GetSignBytes implements sdk.Msg.
 func (msg MsgTransfer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg)) //nolint:staticcheck // Preserve legacy amino sign bytes.
 }
 
 // GetSigners implements sdk.Msg
@@ -117,7 +117,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 // GetSignBytes returns the message bytes to sign over.
 func (msg MsgUpdateParams) GetSignBytes() []byte {
 	bz := AminoCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // Preserve legacy amino sign bytes.
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams.

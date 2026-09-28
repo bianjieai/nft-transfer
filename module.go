@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	_ module.AppModule      = (*AppModule)(nil)
+	_ module.AppModule      = (*AppModule)(nil) //nolint:staticcheck // Keep checking compatibility with the legacy module manager interface.
 	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
 	_ porttypes.IBCModule   = (*IBCModule)(nil)
 )
@@ -102,7 +102,7 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {} //nolint:staticcheck // Preserve the legacy HasInvariants method for compatibility.
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {

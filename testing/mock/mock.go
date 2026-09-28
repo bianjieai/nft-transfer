@@ -121,7 +121,7 @@ func NewAppModule() AppModule {
 }
 
 // RegisterInvariants implements the AppModule interface.
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {} //nolint:staticcheck // Preserve the legacy HasInvariants method for compatibility.
 
 // RegisterServices implements the AppModule interface.
 func (AppModule) RegisterServices(module.Configurator) {}
