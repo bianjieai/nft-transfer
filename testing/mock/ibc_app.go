@@ -3,16 +3,13 @@ package mock
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
 type IBCApp struct {
-	PortID       string
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	PortID string
 
 	OnChanOpenInit func(
 		ctx sdk.Context,
@@ -20,7 +17,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
@@ -31,7 +27,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)
@@ -69,12 +64,14 @@ type IBCApp struct {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
@@ -82,6 +79,7 @@ type IBCApp struct {
 
 	OnTimeoutPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
@@ -120,9 +118,8 @@ type IBCApp struct {
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
-func NewIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *IBCApp {
+func NewIBCApp(portID string) *IBCApp {
 	return &IBCApp{
-		PortID:       portID,
-		ScopedKeeper: scopedKeeper,
+		PortID: portID,
 	}
 }

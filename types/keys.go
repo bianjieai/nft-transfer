@@ -18,6 +18,10 @@ const (
 	// PortID is the default port id that nft-transfer module binds to
 	PortID = "nft-transfer"
 
+	// PortRouterKey is the alphanumeric IBC v10 route matching the default PortID.
+	// The router matches this before the fungible transfer route.
+	PortRouterKey = "nft"
+
 	// StoreKey is the store key string for IBC nft-transfer
 	StoreKey = ModuleName
 

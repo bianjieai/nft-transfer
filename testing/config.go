@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/bianjieai/nft-transfer/testing/mock"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 type ClientConfig interface {
@@ -47,10 +47,9 @@ func NewConnectionConfig() *ConnectionConfig {
 }
 
 type ChannelConfig struct {
-	PortID          string
-	Version         string
-	Order           channeltypes.Order
-	ProposedUpgrade channeltypes.Upgrade
+	PortID  string
+	Version string
+	Order   channeltypes.Order
 }
 
 func NewChannelConfig() *ChannelConfig {

@@ -21,7 +21,7 @@ import (
 	"github.com/bianjieai/nft-transfer/keeper"
 	"github.com/bianjieai/nft-transfer/simulation"
 	"github.com/bianjieai/nft-transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 )
 
 var (

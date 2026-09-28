@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	"cosmossdk.io/x/nft"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	"time"
 
 	ibctesting "github.com/bianjieai/nft-transfer/testing"
 	"github.com/bianjieai/nft-transfer/types"
@@ -290,4 +291,52 @@ func (suite *KeeperTestSuite) receiverNFT(
 		"nft not equal",
 	)
 	return classID
+}
+
+func (suite *KeeperTestSuite) TestRefunds() {
+	for _, timeout := range []bool{false, true} {
+		name := "error acknowledgement"
+		if timeout {
+			name = "timeout"
+		}
+		suite.Run(name, func() {
+			suite.SetupTest()
+			path := NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			app := suite.GetSimApp(suite.chainA)
+			sender := suite.chainA.SenderAccount.GetAddress()
+			const classID, tokenID = "refund-class", "refund-token"
+			suite.Require().NoError(app.NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{Id: classID}))
+			suite.Require().NoError(app.NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{ClassId: classID, Id: tokenID}, sender))
+			msg := &types.MsgTransfer{
+				SourcePort: types.PortID, SourceChannel: path.EndpointA.ChannelID,
+				ClassId: classID, TokenIds: []string{tokenID}, Sender: sender.String(),
+				Receiver: "invalid-receiver", TimeoutTimestamp: uint64(suite.coordinator.CurrentTime.Add(time.Minute).UnixNano()),
+			}
+			res, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err)
+			packet, err := ibctesting.ParsePacketFromEvents(res.Events)
+			suite.Require().NoError(err)
+			suite.Require().Equal(types.GetEscrowAddress(types.PortID, path.EndpointA.ChannelID), app.NFTKeeper.GetOwner(suite.chainA.GetContext(), classID, tokenID))
+
+			if timeout {
+				suite.coordinator.IncrementTimeBy(2 * time.Minute)
+				suite.coordinator.CommitBlock(suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+				suite.Require().NoError(path.EndpointA.TimeoutPacket(packet))
+			} else {
+				suite.Require().NoError(path.EndpointB.UpdateClient())
+				res, err = path.EndpointB.RecvPacketWithResult(packet)
+				suite.Require().NoError(err)
+				ackBytes, err := ibctesting.ParseAckFromEvents(res.Events)
+				suite.Require().NoError(err)
+				var ack channeltypes.Acknowledgement
+				suite.Require().NoError(types.ModuleCdc.UnmarshalJSON(ackBytes, &ack))
+				suite.Require().False(ack.Success())
+				suite.Require().NoError(path.EndpointA.AcknowledgePacket(packet, ackBytes))
+			}
+			suite.Require().Equal(sender, app.NFTKeeper.GetOwner(suite.chainA.GetContext(), classID, tokenID))
+			suite.Require().Empty(app.IBCKeeper.ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), types.PortID, path.EndpointA.ChannelID, packet.Sequence))
+		})
+	}
 }
